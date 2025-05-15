@@ -75,3 +75,65 @@ body {
   border: none;
   border-radius: 5px;
 }
+
+
+/* Styles for message cards */   /*Ismail req 8*/
+.message-card {
+  background: #fff;
+  padding: 1em;
+  border-radius: 8px;
+  margin-bottom: 1em;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Accepted status - green */
+.message-card.accepted {
+  border-left: 5px solid green;
+  background-color: #e7f9e7;
+}
+
+/* Rejected status - red */
+.message-card.rejected {
+  border-left: 5px solid red;
+  background-color: #f9e7e7;
+}
+
+/* Status text */
+.status {
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+.status.accepted {
+  color: green;
+}
+
+.status.rejected {
+  color: red;
+}
+
+
+.message-card.accepted {
+  border-left: 5px solid green;
+  background-color: #e9ffe9;
+}
+.message-card.rejected {
+  border-left: 5px solid red;
+  background-color: #ffe9e9;
+}
+.message-card.applied {
+  border-left: 5px solid #007bff;
+  background-color: #f0f8ff;
+}
+.status.accepted {
+  color: green;
+  font-weight: bold;
+}
+.status.rejected {
+  color: red;
+  font-weight: bold;
+}
+.status.applied {
+  color: #007bff;
+  font-weight: bold;
+}

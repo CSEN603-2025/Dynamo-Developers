@@ -1,243 +1,407 @@
-import { useState } from "react";
+import { useState } from 'react';
+import Navbar from '../components/Navbar';
 
 export default function CompanyDashboard() {
-  // Internships posted by the company
   const [internships, setInternships] = useState([
     {
       id: 1,
-      title: "Frontend Developer Intern",
-      industry: "Tech",
+      company: "Google",
+      title: "UI/UX Designer",
       duration: "3 months",
-      paid: true,
-      pay: "$1500/month",
-      skills: "React, JavaScript",
-      description: "Work on UI.",
-      applications: 2,
-      status: "open",
+      industry: "Design",
+      isPaid: true,
+      salary: "$2000/month",
+      skills: "Figma, Adobe XD",
+      description: "Design user interfaces for mobile and web apps."
     },
     {
       id: 2,
-      title: "Marketing Intern",
-      industry: "Marketing",
+      company: "Amazon",
+      title: "DevOps Intern",
       duration: "6 months",
-      paid: false,
-      pay: "Unpaid",
-      skills: "Communication, Social Media",
-      description: "Help with outreach.",
-      applications: 1,
-      status: "open",
-    },
+      industry: "Engineering",
+      isPaid: true,
+      salary: "$2500/month",
+      skills: "AWS, Docker, Jenkins",
+      description: "Assist with CI/CD pipeline automation."
+    }
   ]);
-  const [view, setView] = useState("internships");
+
+  const [allInternships] = useState([
+    {
+      id: 1,
+      company: "Google",
+      title: "UI/UX Designer",
+      duration: "3 months",
+      industry: "Design",
+      isPaid: true,
+      salary: "$2000/month",
+      skills: "Figma, Adobe XD",
+      description: "Design user interfaces for mobile and web apps."
+    },
+    {
+      id: 2,
+      company: "Amazon",
+      title: "DevOps Intern",
+      duration: "6 months",
+      industry: "Engineering",
+      isPaid: true,
+      salary: "$2500/month",
+      skills: "AWS, Docker, Jenkins",
+      description: "Assist with CI/CD pipeline automation."
+    },
+    {
+      id: 3,
+      company: "Facebook",
+      title: "Data Science Intern",
+      duration: "4 months",
+      industry: "Data Science",
+      isPaid: false,
+      salary: null,
+      skills: "Python, Pandas, Machine Learning",
+      description: "Work on data analysis projects."
+    },
+    {
+      id: 4,
+      company: "Microsoft",
+      title: "Software Engineering Intern",
+      duration: "5 months",
+      industry: "Engineering",
+      isPaid: true,
+      salary: "$3000/month",
+      skills: "C++, Algorithms",
+      description: "Develop new software features."
+    },
+    {
+      id: 5,
+      company: "Apple",
+      title: "Marketing Intern",
+      duration: "2 months",
+      industry: "Marketing",
+      isPaid: false,
+      salary: null,
+      skills: "Communication, Market Research",
+      description: "Support the product marketing team."
+    }
+  ]);
+
+  const [messages] = useState([
+    {
+      id: 1,
+      message: 'The SCAD Office has accepted your Application.',
+      date: '2025-05-10',
+      status: 'accepted'
+    },
+    {
+      id: 2,
+      message: 'The SCAD Office has rejected your Application.',
+      date: '2025-05-11',
+      status: 'rejected'
+    },
+    {
+      id: 3,
+      message: 'A student applied to your internship at Google.',
+      date: '2025-05-15',
+      status: 'application'
+    }
+  ]);
+
+  const [activeTab, setActiveTab] = useState('internships');
   const [selectedInternship, setSelectedInternship] = useState(null);
-  const [editInternship, setEditInternship] = useState(null);
-  const [form, setForm] = useState({
-    title: "",
-    industry: "",
-    duration: "",
-    paid: false,
-    pay: "",
-    skills: "",
-    description: "",
-  });
-  const [applicationStatus, setApplicationStatus] = useState({});
-  const [internshipSearch, setInternshipSearch] = useState("");
-  const [applicationSearch, setApplicationSearch] = useState("");
-  const [documents, setDocuments] = useState({}); // { internshipId: [file1, file2] }
+  const [formMode, setFormMode] = useState(null); // 'create' or 'edit'
+  const [formData, setFormData] = useState({});
 
-  // Dummy applications
-  const applications = [
-    { id: 1, name: "Alice", status: applicationStatus[1] || "Pending", internshipId: 1 },
-    { id: 2, name: "Bob", status: applicationStatus[2] || "Accepted", internshipId: 1 },
-    { id: 3, name: "Charlie", status: applicationStatus[3] || "Finalized", internshipId: 2 },
-    { id: 4, name: "Dana", status: applicationStatus[4] || "Current Intern", internshipId: 2 },
-  ];
-  const interns = applications.filter((app) => app.status === "Current Intern");
+  // Filters
+  const [mySearch, setMySearch] = useState('');
+  const [myIndustry, setMyIndustry] = useState('');
+  const [myDuration, setMyDuration] = useState('');
+  const [myPaid, setMyPaid] = useState(null);
 
-  // Handlers
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this internship?")) {
-      setInternships((prev) => prev.filter((post) => post.id !== id));
-    }
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedIndustry, setSelectedIndustry] = useState('');
+  const [selectedDuration, setSelectedDuration] = useState('');
+  const [isPaid, setIsPaid] = useState(null);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSelectedInternship(null);
+    setFormMode(null);
   };
-  const handleEdit = (post) => {
-    setEditInternship(post);
-    setForm({
-      title: post.title,
-      industry: post.industry,
-      duration: post.duration,
-      paid: post.paid,
-      pay: post.pay,
-      skills: post.skills,
-      description: post.description,
+
+  const handleSelectInternship = (internship) => {
+    setSelectedInternship(internship);
+    setActiveTab('details');
+  };
+
+  const handleDeleteInternship = (id) => {
+    setInternships(internships.filter((job) => job.id !== id));
+  };
+
+  const handleEditInternship = (job) => {
+    setFormMode('edit');
+    setFormData(job);
+    setActiveTab('form');
+  };
+
+  const handleCreateInternship = () => {
+    setFormMode('create');
+    setFormData({
+      title: '',
+      company: '',
+      duration: '',
+      industry: '',
+      isPaid: false,
+      salary: '',
+      skills: '',
+      description: ''
     });
-    setView("edit");
+    setActiveTab('form');
   };
-  const handleFormSubmit = (e) => {
+
+  const handleSubmitForm = (e) => {
     e.preventDefault();
-    if (editInternship) {
-      setInternships((prev) =>
-        prev.map((post) =>
-          post.id === editInternship.id ? { ...post, ...form } : post
-        )
-      );
-      setEditInternship(null);
+    if (formMode === 'edit') {
+      setInternships(internships.map((job) => job.id === formData.id ? formData : job));
     } else {
-      const newPost = {
-        id: internships.length + 1,
-        applications: 0,
-        status: "open",
-        ...form,
+      const newInternship = {
+        ...formData,
+        id: Math.max(...internships.map((job) => job.id)) + 1
       };
-      setInternships((prev) => [...prev, newPost]);
+      setInternships([...internships, newInternship]);
     }
-    setForm({ title: "", industry: "", duration: "", paid: false, pay: "", skills: "", description: "" });
-    setView("internships");
-  };
-  const handleStatusChange = (appId, status) => {
-    setApplicationStatus((prev) => ({ ...prev, [appId]: status }));
-  };
-  const handleDocumentUpload = (internshipId, e) => {
-    const file = e.target.files[0];
-    setDocuments((prev) => ({
-      ...prev,
-      [internshipId]: prev[internshipId] ? [...prev[internshipId], file.name] : [file.name],
-    }));
+    setFormMode(null);
+    setActiveTab('internships');
   };
 
-  // Renderers
-  const renderInternships = () => {
-    const filtered = internships.filter((i) =>
-      i.title.toLowerCase().includes(internshipSearch.toLowerCase())
-    );
-    return (
-      <>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ color: "#1976d2" }}>My Internships</h2>
-          <button onClick={() => setView("new")}>Post New Internship</button>
-        </div>
-        <input
-          style={{ width: "100%", marginBottom: 16 }}
-          placeholder="Search internships"
-          value={internshipSearch}
-          onChange={e => setInternshipSearch(e.target.value)}
-        />
-        <div className="internship-list">
-          {filtered.map((post) => (
-            <div key={post.id} className="internship-card" style={{ background: "#fff", border: "1px solid #bbdefb" }}>
-              <h3 style={{ color: "#1976d2" }}>{post.title}</h3>
-              <p><b>Industry:</b> {post.industry}</p>
-              <p><b>Duration:</b> {post.duration}</p>
-              <p><b>Pay:</b> {post.paid ? post.pay : "Unpaid"}</p>
-              <p><b>Skills:</b> {post.skills}</p>
-              <p><b>Applications:</b> {post.applications}</p>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button onClick={() => { setSelectedInternship(post.id); setView("applications"); }}>View Applications</button>
-                <button onClick={() => handleEdit(post)}>Edit</button>
-                <button onClick={() => handleDelete(post.id)}>Delete</button>
-              </div>
-              <div style={{ marginTop: 8 }}>
-                <label>
-                  <b>Upload Document:</b>
-                  <input type="file" onChange={e => handleDocumentUpload(post.id, e)} style={{ marginLeft: 8 }} />
-                </label>
-                <div style={{ fontSize: 13, color: "#1976d2" }}>
-                  Uploaded: {(documents[post.id] || []).join(", ")}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </>
-    );
-  };
+  const filteredMyInternships = internships.filter((job) => {
+    const matchSearch = job.title.toLowerCase().includes(mySearch.toLowerCase()) ||
+      job.company.toLowerCase().includes(mySearch.toLowerCase());
+    const matchIndustry = myIndustry ? job.industry === myIndustry : true;
+    const matchDuration = myDuration ? job.duration === myDuration : true;
+    const matchPaid = myPaid !== null ? job.isPaid === myPaid : true;
+    return matchSearch && matchIndustry && matchDuration && matchPaid;
+  });
 
-  const renderNewOrEditForm = () => (
-    <form onSubmit={handleFormSubmit} style={{ maxWidth: 500, margin: "0 auto" }}>
-      <h2 style={{ color: "#1976d2" }}>{editInternship ? "Edit Internship" : "Post New Internship"}</h2>
-      <input placeholder="Title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required />
-      <input placeholder="Industry" value={form.industry} onChange={e => setForm({ ...form, industry: e.target.value })} required />
-      <input placeholder="Duration" value={form.duration} onChange={e => setForm({ ...form, duration: e.target.value })} required />
-      <label>
-        Paid:
-        <input type="checkbox" checked={form.paid} onChange={e => setForm({ ...form, paid: e.target.checked })} style={{ marginLeft: 8 }} />
-      </label>
-      <input placeholder="Pay (if paid)" value={form.pay} onChange={e => setForm({ ...form, pay: e.target.value })} disabled={!form.paid} />
-      <input placeholder="Skills" value={form.skills} onChange={e => setForm({ ...form, skills: e.target.value })} required />
-      <textarea placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required />
-      <div style={{ display: "flex", gap: 12 }}>
-        <button type="submit">{editInternship ? "Update" : "Post"}</button>
-        <button type="button" onClick={() => { setEditInternship(null); setForm({ title: "", industry: "", duration: "", paid: false, pay: "", skills: "", description: "" }); setView("internships"); }}>Cancel</button>
-      </div>
-    </form>
-  );
-
-  const renderApplications = () => {
-    const relevantApps = applications.filter(
-      (app) => app.internshipId === selectedInternship &&
-        app.name.toLowerCase().includes(applicationSearch.toLowerCase())
-    );
-    return (
-      <>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ color: "#1976d2" }}>Applications</h2>
-          <button onClick={() => setView("internships")}>← Back</button>
-        </div>
-        <input
-          style={{ width: "100%", marginBottom: 16 }}
-          placeholder="Search applications"
-          value={applicationSearch}
-          onChange={e => setApplicationSearch(e.target.value)}
-        />
-        <div className="internship-list">
-          {relevantApps.map((app) => (
-            <div key={app.id} className="application-card" style={{ background: "#e3f2fd", border: "1px solid #bbdefb" }}>
-              <p><b>Name:</b> {app.name}</p>
-              <p><b>Status:</b> {app.status}</p>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button onClick={() => handleStatusChange(app.id, "Finalized")}>Set as Finalized</button>
-                <button onClick={() => handleStatusChange(app.id, "Accepted")}>Set as Accepted</button>
-                <button onClick={() => handleStatusChange(app.id, "Current Intern")}>Set as Current Intern</button>
-                <button onClick={() => handleStatusChange(app.id, "Rejected")}>Reject</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </>
-    );
-  };
-
-  const renderInterns = () => (
-    <>
-      <h2 style={{ color: "#1976d2" }}>Current Interns</h2>
-      <div className="internship-list">
-        {interns.length === 0 ? (
-          <p>No current interns</p>
-        ) : (
-          interns.map((intern) => (
-            <div key={intern.id} className="intern-card" style={{ background: "#e3f2fd", border: "1px solid #bbdefb" }}>
-              <p>{intern.name}</p>
-              <button onClick={() => alert("Evaluation submitted (dummy)")}>Evaluate</button>
-            </div>
-          ))
-        )}
-      </div>
-    </>
-  );
+  const filteredInternships = allInternships.filter((job) => {
+    const matchSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.company.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchIndustry = selectedIndustry ? job.industry === selectedIndustry : true;
+    const matchDuration = selectedDuration ? job.duration === selectedDuration : true;
+    const matchPaid = isPaid !== null ? job.isPaid === isPaid : true;
+    return matchSearch && matchIndustry && matchDuration && matchPaid;
+  });
 
   return (
-    <div className="dashboard-container" style={{ background: "#e3f2fd", minHeight: "100vh", padding: "2rem 0" }}>
-      <div className="dashboard-content" style={{ background: "#fff", borderRadius: 18, boxShadow: "0 4px 24px #bbdefb55", padding: "2rem" }}>
-        <nav className="navbar" style={{ marginBottom: 32, background: "#1976d2", color: "#fff", borderRadius: 12, padding: "1rem 2rem", display: "flex", gap: 24, justifyContent: "center" }}>
-          <button style={{ background: view === "internships" ? "#fff" : "#1976d2", color: view === "internships" ? "#1976d2" : "#fff" }} onClick={() => setView("internships")}>My Internships</button>
-          <button style={{ background: view === "interns" ? "#fff" : "#1976d2", color: view === "interns" ? "#1976d2" : "#fff" }} onClick={() => setView("interns")}>Current Interns</button>
-        </nav>
-        {view === "internships" && <section>{renderInternships()}</section>}
-        {view === "new" && <section>{renderNewOrEditForm()}</section>}
-        {view === "edit" && <section>{renderNewOrEditForm()}</section>}
-        {view === "applications" && <section>{renderApplications()}</section>}
-        {view === "interns" && <section>{renderInterns()}</section>}
+    <div>
+      <Navbar />
+      <h2 className="dashboard-title">Welcome, Company</h2>
+
+      <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '2em' }}>
+        <button onClick={() => handleTabChange('internships')}>Internships</button>
+        <button onClick={() => handleTabChange('messages')}>Messages</button>
       </div>
+
+      {activeTab === 'internships' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3>My Internships</h3>
+            <button onClick={handleCreateInternship}>Create Internship</button>
+          </div>
+
+          <input
+            type="text"
+            placeholder="Search my internships..."
+            value={mySearch}
+            onChange={(e) => setMySearch(e.target.value)}
+            style={{ width: '100%', padding: '0.5em', marginBottom: '1em' }}
+          />
+
+          <div style={{ marginBottom: '1em' }}>
+            <select onChange={(e) => setMyIndustry(e.target.value)} value={myIndustry}>
+              <option value="">Filter by Industry</option>
+              <option value="Design">Design</option>
+              <option value="Engineering">Engineering</option>
+              <option value="Data Science">Data Science</option>
+              <option value="Marketing">Marketing</option>
+            </select>
+
+            <select onChange={(e) => setMyDuration(e.target.value)} value={myDuration}>
+              <option value="">Filter by Duration</option>
+              <option value="2 months">2 months</option>
+              <option value="3 months">3 months</option>
+              <option value="4 months">4 months</option>
+              <option value="5 months">5 months</option>
+              <option value="6 months">6 months</option>
+            </select>
+
+            <select onChange={(e) =>
+              setMyPaid(e.target.value === 'paid' ? true : e.target.value === 'unpaid' ? false : null)}
+              value={myPaid === null ? '' : myPaid ? 'paid' : 'unpaid'}
+            >
+              <option value="">Filter by Paid/Unpaid</option>
+              <option value="paid">Paid</option>
+              <option value="unpaid">Unpaid</option>
+            </select>
+          </div>
+
+          <div className="internship-list">
+            {filteredMyInternships.map((job) => (
+              <div key={job.id} className="internship-card">
+                <h3>{job.title}</h3>
+                <p>{job.company}</p>
+                <p>Duration: {job.duration}</p>
+                <p>{job.isPaid ? 'Paid' : 'Unpaid'}</p>
+                <button onClick={() => handleSelectInternship(job)}>View</button>
+                <button onClick={() => handleEditInternship(job)}>Edit</button>
+                <button onClick={() => handleDeleteInternship(job.id)}>Delete</button>
+              </div>
+            ))}
+          </div>
+
+          <h3 style={{ marginTop: '2em' }}>All Available Internships</h3>
+
+          <input
+            type="text"
+            placeholder="Search all internships..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ width: '100%', padding: '0.5em', marginBottom: '1em' }}
+          />
+
+          <div style={{ marginBottom: '1em' }}>
+            <select onChange={(e) => setSelectedIndustry(e.target.value)} value={selectedIndustry}>
+              <option value="">Filter by Industry</option>
+              <option value="Design">Design</option>
+              <option value="Engineering">Engineering</option>
+              <option value="Data Science">Data Science</option>
+              <option value="Marketing">Marketing</option>
+            </select>
+
+            <select onChange={(e) => setSelectedDuration(e.target.value)} value={selectedDuration}>
+              <option value="">Filter by Duration</option>
+              <option value="2 months">2 months</option>
+              <option value="3 months">3 months</option>
+              <option value="4 months">4 months</option>
+              <option value="5 months">5 months</option>
+              <option value="6 months">6 months</option>
+            </select>
+
+            <select onChange={(e) =>
+              setIsPaid(e.target.value === 'paid' ? true : e.target.value === 'unpaid' ? false : null)}
+              value={isPaid === null ? '' : isPaid ? 'paid' : 'unpaid'}
+            >
+              <option value="">Filter by Paid/Unpaid</option>
+              <option value="paid">Paid</option>
+              <option value="unpaid">Unpaid</option>
+            </select>
+          </div>
+
+          <div className="internship-list">
+            {filteredInternships.map((job) => (
+              <div key={job.id} className="internship-card">
+                <h3>{job.title}</h3>
+                <p>{job.company}</p>
+                <p>Duration: {job.duration}</p>
+                <p>{job.isPaid ? 'Paid' : 'Unpaid'}</p>
+                <button onClick={() => handleSelectInternship(job)}>View</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'form' && (
+        <div>
+          <h3>{formMode === 'edit' ? 'Edit Internship' : 'Create Internship'}</h3>
+          <form onSubmit={handleSubmitForm}>
+            <input
+              type="text"
+              placeholder="Title"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Company"
+              value={formData.company}
+              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Duration"
+              value={formData.duration}
+              onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Industry"
+              value={formData.industry}
+              onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+            />
+            <label>
+              <input
+                type="checkbox"
+                checked={formData.isPaid}
+                onChange={(e) => setFormData({ ...formData, isPaid: e.target.checked })}
+              />
+              Paid
+            </label>
+            <input
+              type="text"
+              placeholder="Salary"
+              value={formData.salary}
+              onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Skills"
+              value={formData.skills}
+              onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+            />
+            <textarea
+              placeholder="Description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            />
+            <button type="submit">Save</button>
+            <button type="button" onClick={() => handleTabChange('internships')}>Cancel</button>
+          </form>
+        </div>
+      )}
+
+      {activeTab === 'details' && selectedInternship && (
+        <div className="internship-details">
+          <h3>Internship Details</h3>
+          <p><strong>Title:</strong> {selectedInternship.title}</p>
+          <p><strong>Company:</strong> {selectedInternship.company}</p>
+          <p><strong>Duration:</strong> {selectedInternship.duration}</p>
+          <p><strong>Industry:</strong> {selectedInternship.industry}</p>
+          <p><strong>Status:</strong> {selectedInternship.isPaid ? 'Paid' : 'Unpaid'}</p>
+          {selectedInternship.isPaid && <p><strong>Salary:</strong> {selectedInternship.salary}</p>}
+          {selectedInternship.skills && <p><strong>Skills Required:</strong> {selectedInternship.skills}</p>}
+          {selectedInternship.description && <p><strong>Job Description:</strong> {selectedInternship.description}</p>}
+          <button onClick={() => handleTabChange('internships')}>Back</button>
+        </div>
+      )}
+
+      {activeTab === 'messages' && (
+        <div className="messages-list">
+          <h3>Messages</h3>
+          {messages.length > 0 ? (
+            messages.map((msg) => (
+              <div key={msg.id} className={`message-card ${msg.status}`}>
+                <p>{msg.message}</p>
+                <small>{msg.date}</small>
+                <div className={`status ${msg.status}`}>{msg.status}</div>
+              </div>
+            ))
+          ) : (
+            <p>No messages yet.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
