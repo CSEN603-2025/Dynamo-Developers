@@ -1,0 +1,3235 @@
+import { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
+import Notification from "../components/Notification";
+import { FaChartBar, FaFileAlt, FaCalendarAlt, FaUsers, FaBuilding, FaVideo, FaSearch, FaSignOutAlt } from 'react-icons/fa';
+
+const ProBadge = () => (
+  <div style={{
+    position: 'absolute',
+    top: '20px',
+    right: '20px',
+    background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+    padding: '8px 16px',
+    borderRadius: '20px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+    zIndex: 1000
+  }}>
+    <span style={{ fontSize: '20px' }}>⭐</span>
+    <span style={{ 
+      color: '#fff', 
+      fontWeight: 'bold',
+      textShadow: '1px 1px 2px rgba(0,0,0,0.2)'
+    }}>PRO</span>
+  </div>
+);
+
+const isProStudent = (internships) => {
+  return internships.some(internship => 
+    internship.status === "Completed" && 
+    internship.duration === "3 months"
+  );
+};
+
+export default function ProStudentDashboard() {
+  // List of available internships (dummy data)
+  const [internships, setInternships] = useState([
+    {
+      id: 1,
+      title: "Frontend Developer Intern",
+      company: "Google",
+      industry: "Tech",
+      duration: "3 months",
+      pay: "$1500/month",
+      description: "Work on UI with React and JavaScript",
+      applied: false,
+      status: "Pending",
+    },
+    {
+      id: 2,
+      title: "Backend Developer Intern",
+      company: "Amazon",
+      industry: "E-commerce",
+      duration: "6 months",
+      pay: "$1800/month",
+      description: "Build REST APIs and manage databases",
+      applied: false,
+      status: "Pending",
+    },
+    {
+      id: 3,
+      title: "Data Science Intern",
+      company: "Facebook",
+      industry: "Tech",
+      duration: "4 months",
+      pay: "$1700/month",
+      description: "Analyze big data using Python and SQL",
+      applied: false,
+      status: "Pending",
+    },
+  ]);
+
+  // Past and current internships (dummy data)
+  const [pastAndCurrentInternships] = useState([
+    {
+      id: 4,
+      title: "Marketing Intern",
+      company: "Apple",
+      industry: "Marketing",
+      duration: "3 months",
+      pay: "Unpaid",
+      description: "Assist with online marketing strategies and campaigns",
+      status: "Completed",
+      monthCompleted: "June 2022",
+    },
+    {
+      id: 5,
+      title: "Product Management Intern",
+      company: "Tesla",
+      industry: "Automotive",
+      duration: "5 months",
+      pay: "$2000/month",
+      description: "Help in planning and developing product features",
+      status: "Completed",
+      monthCompleted: "August 2021",
+    },
+    {
+      id: 6,
+      title: "Software Engineering Intern",
+      company: "Microsoft",
+      industry: "Tech",
+      duration: "6 months",
+      pay: "$2500/month",
+      description: "Work on product features, bug fixes, and testing",
+      status: "Current Intern",
+      monthCompleted: "",
+    },
+    {
+      id: 7,
+      title: "Content Writing Intern",
+      company: "Red Bull",
+      industry: "Media",
+      duration: "2 months",
+      pay: "Unpaid",
+      description: "Assist with writing articles and blogs for digital media",
+      status: "Current Intern",
+      monthCompleted: "",
+    },
+  ]);
+
+  // Search and filter states
+  const [allInternshipsSearchTerm, setAllInternshipsSearchTerm] = useState("");
+  const [allInternshipsIndustryFilter, setAllInternshipsIndustryFilter] = useState("");
+  const [allInternshipsDurationFilter, setAllInternshipsDurationFilter] = useState("");
+  const [allInternshipsPayFilter, setAllInternshipsPayFilter] = useState("");
+  const [pastAndCurrentSearchTerm, setPastAndCurrentSearchTerm] = useState("");
+  const [pastAndCurrentStatusFilter, setPastAndCurrentStatusFilter] = useState("");
+  const [pastAndCurrentDateFilter, setPastAndCurrentDateFilter] = useState("");
+
+  // Internships selected for viewing
+  const [selectedInternship, setSelectedInternship] = useState(null);
+  const [document, setDocument] = useState(null);
+
+  // List of applied internships
+  const [appliedInternships, setAppliedInternships] = useState([]);
+
+  // Video call request states
+  const [videoCallRequests, setVideoCallRequests] = useState([
+    {
+      id: 1,
+      date: "2024-03-15",
+      time: "10:30",
+      reason: "General inquiry about the internship",
+      status: "pending"
+    },
+    {
+      id: 2,
+      date: "2024-03-16",
+      time: "11:00",
+      reason: "Request for a follow-up call",
+      status: "pending"
+    },
+    {
+      id: 3,
+      date: "2024-03-17",
+      time: "14:00",
+      reason: "Discussion about the interview process",
+      status: "pending"
+    }
+  ]);
+  const [scadVideoCallRequests, setScadVideoCallRequests] = useState([]);
+  const [confirmedAppointments, setConfirmedAppointments] = useState([
+    {
+      id: 1,
+      date: "2024-03-15",
+      time: "10:30",
+      reason: "General inquiry about the internship",
+      status: "accepted",
+      type: "confirmed",
+      studentName: "Judy Tarek",
+      studentId: "58-3661",
+      timestamp: "2024-03-15T10:30:00",
+      scadOnlineStatus: true
+    },
+    {
+      id: 2,
+      date: "2024-03-16",
+      time: "11:00",
+      reason: "Request for a follow-up call",
+      status: "pending",
+      type: "incoming",
+      studentName: "John Doe",
+      studentId: "58-3662",
+      timestamp: "2024-03-16T11:00:00",
+      scadOnlineStatus: false
+    },
+    {
+      id: 3,
+      date: "2024-03-17",
+      time: "14:00",
+      reason: "Discussion about the interview process",
+      status: "pending",
+      type: "incoming",
+      studentName: "Jane Smith",
+      studentId: "58-3663",
+      timestamp: "2024-03-17T14:00:00",
+      scadOnlineStatus: true
+    }
+  ]);
+  const [showVideoCallModal, setShowVideoCallModal] = useState(false);
+  const [selectedCallDate, setSelectedCallDate] = useState("");
+  const [selectedCallTime, setSelectedCallTime] = useState("");
+  const [callReason, setCallReason] = useState("");
+  const [incomingScadRequests, setIncomingScadRequests] = useState([]);
+  const [notification, setNotification] = useState(null);
+  const [hasCheckedNotifications, setHasCheckedNotifications] = useState(false);
+
+  // Add this after the existing state declarations
+  const [profileViews, setProfileViews] = useState([
+    { id: 1, companyName: "Google", viewedAt: "2024-03-15T10:30:00", status: "viewed" },
+    { id: 2, companyName: "Microsoft", viewedAt: "2024-03-14T15:45:00", status: "viewed" },
+    { id: 3, companyName: "Amazon", viewedAt: "2024-03-13T09:15:00", status: "viewed" }
+  ]);
+
+  // Add this after the existing state declarations
+  const [onlineAssessments, setOnlineAssessments] = useState([
+    {
+      id: 1,
+      title: "Technical Skills Assessment",
+      company: "Google",
+      duration: "60 minutes",
+      topics: ["Data Structures", "Algorithms", "Problem Solving"],
+      status: "available",
+      deadline: "2024-04-01T23:59:59"
+    },
+    {
+      id: 2,
+      title: "Frontend Development Test",
+      company: "Microsoft",
+      duration: "45 minutes",
+      topics: ["React", "JavaScript", "CSS"],
+      status: "completed",
+      score: "85%",
+      completedAt: "2024-03-10T15:30:00"
+    },
+    {
+      id: 3,
+      title: "Backend Engineering Challenge",
+      company: "Amazon",
+      duration: "90 minutes",
+      topics: ["System Design", "API Development", "Database"],
+      status: "available",
+      deadline: "2024-04-15T23:59:59"
+    }
+  ]);
+
+  // Add these state variables after the existing ones
+  const [selectedAssessment, setSelectedAssessment] = useState(null);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [isAssessmentActive, setIsAssessmentActive] = useState(false);
+
+  // Add this state for profile visibility
+  const [profileVisibility, setProfileVisibility] = useState({
+    1: false, // Technical Skills Assessment
+    3: false  // Backend Engineering Challenge
+  });
+
+  // Update the assessment questions data
+  const assessmentQuestions = {
+    1: [ // Technical Skills Assessment
+      {
+        id: 1,
+        question: "Which of the following is NOT a valid way to declare a variable in JavaScript?",
+        options: [
+          "let x = 5;",
+          "const x = 5;",
+          "var x = 5;",
+          "variable x = 5;"
+        ],
+        correctAnswer: "variable x = 5;"
+      },
+      {
+        id: 2,
+        question: "What is the output of console.log(typeof [])?",
+        options: [
+          "array",
+          "object",
+          "undefined",
+          "null"
+        ],
+        correctAnswer: "object"
+      },
+      {
+        id: 3,
+        question: "Which React hook is used to perform side effects in a component?",
+        options: [
+          "useState",
+          "useEffect",
+          "useContext",
+          "useReducer"
+        ],
+        correctAnswer: "useEffect"
+      },
+      {
+        id: 4,
+        question: "What is the correct way to create a React functional component?",
+        options: [
+          "function MyComponent() { return <div>Hello</div>; }",
+          "class MyComponent extends React.Component { render() { return <div>Hello</div>; } }",
+          "const MyComponent = () => { return <div>Hello</div>; }",
+          "Both A and C are correct"
+        ],
+        correctAnswer: "Both A and C are correct"
+      },
+      {
+        id: 5,
+        question: "Which CSS property is used to create space between elements?",
+        options: [
+          "padding",
+          "margin",
+          "spacing",
+          "gap"
+        ],
+        correctAnswer: "margin"
+      }
+    ],
+    3: [ // Backend Engineering Challenge
+      {
+        id: 1,
+        question: "Which of the following is a best practice for REST API design?",
+        options: [
+          "Use verbs in the URL path",
+          "Use nouns in the URL path",
+          "Always use POST for all operations",
+          "Include sensitive data in URL parameters"
+        ],
+        correctAnswer: "Use nouns in the URL path"
+      },
+      {
+        id: 2,
+        question: "What is the purpose of database indexing?",
+        options: [
+          "To store backup data",
+          "To improve query performance",
+          "To reduce database size",
+          "To encrypt sensitive data"
+        ],
+        correctAnswer: "To improve query performance"
+      },
+      {
+        id: 3,
+        question: "Which HTTP status code indicates a successful creation of a resource?",
+        options: [
+          "200 OK",
+          "201 Created",
+          "204 No Content",
+          "202 Accepted"
+        ],
+        correctAnswer: "201 Created"
+      },
+      {
+        id: 4,
+        question: "What is the main purpose of a database transaction?",
+        options: [
+          "To speed up database operations",
+          "To ensure data consistency and integrity",
+          "To reduce database size",
+          "To encrypt sensitive data"
+        ],
+        correctAnswer: "To ensure data consistency and integrity"
+      },
+      {
+        id: 5,
+        question: "Which of the following is NOT a common database normalization form?",
+        options: [
+          "First Normal Form (1NF)",
+          "Second Normal Form (2NF)",
+          "Third Normal Form (3NF)",
+          "Zero Normal Form (0NF)"
+        ],
+        correctAnswer: "Zero Normal Form (0NF)"
+      }
+    ]
+  };
+
+  // Add these state variables after the existing ones
+  const [workshops, setWorkshops] = useState([
+    {
+      id: 1,
+      title: "Resume Building Workshop",
+      date: "2024-04-01",
+      time: "10:00 AM",
+      duration: "2 hours",
+      speaker: "Sarah Johnson",
+      description: "Learn how to create a compelling resume that stands out to employers. We'll cover formatting, content organization, and best practices for different industries.",
+      topics: ["Resume Formatting", "Content Writing", "ATS Optimization"],
+      maxParticipants: 50,
+      currentParticipants: 35,
+      status: "upcoming"
+    },
+    {
+      id: 2,
+      title: "Interview Preparation Masterclass",
+      date: "2024-04-05",
+      time: "2:00 PM",
+      duration: "3 hours",
+      speaker: "Michael Chen",
+      description: "Master the art of interviewing with our comprehensive workshop. We'll cover common questions, behavioral interviews, and how to handle difficult situations.",
+      topics: ["Behavioral Questions", "Technical Interviews", "Salary Negotiation"],
+      maxParticipants: 40,
+      currentParticipants: 40,
+      status: "upcoming"
+    },
+    {
+      id: 3,
+      title: "Career Path Planning",
+      date: "2024-04-10",
+      time: "11:00 AM",
+      duration: "2.5 hours",
+      speaker: "Dr. Emily Rodriguez",
+      description: "Plan your career trajectory with expert guidance. Learn how to set goals, identify opportunities, and create a roadmap for your professional development.",
+      topics: ["Goal Setting", "Industry Trends", "Skill Development"],
+      maxParticipants: 45,
+      currentParticipants: 28,
+      status: "upcoming"
+    }
+  ]);
+
+  const [registeredWorkshops, setRegisteredWorkshops] = useState([]);
+  const [selectedWorkshop, setSelectedWorkshop] = useState(null);
+  const [showWorkshopModal, setShowWorkshopModal] = useState(false);
+
+  // Add notifications state
+  const [notifications, setNotifications] = useState([
+    { id: 1, message: "Next cycle starts on June 1, 2025", type: "cycle" },
+    { id: 2, message: "Cycle begins in 7 days", type: "cycle" },
+    { 
+      id: 3, 
+      message: "Upcoming Workshop: Resume Building Workshop", 
+      type: "workshop",
+      details: {
+        date: "2024-04-01",
+        time: "10:00 AM",
+        duration: "2 hours",
+        speaker: "Sarah Johnson"
+      }
+    }
+  ]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const addNotification = (message, type, jobId = null) => {
+    setNotifications((n) => [...n, { id: Date.now(), message, type, jobId }]);
+  };
+
+  // Load SCAD requests and confirmed appointments
+  useEffect(() => {
+    const loadScadRequestsAndAppointments = () => {
+      // Load SCAD video call requests
+      const storedScadRequests = JSON.parse(localStorage.getItem('scadVideoCallRequests') || '[]');
+      setScadVideoCallRequests(storedScadRequests);
+
+      // Load confirmed appointments
+      const storedAppointments = JSON.parse(localStorage.getItem('confirmedAppointments') || '[]');
+      setConfirmedAppointments(storedAppointments);
+    };
+
+    loadScadRequestsAndAppointments();
+  }, []);
+
+  // Function to sort appointments by date and time
+  const getSortedAppointments = () => {
+    return [...confirmedAppointments].sort((a, b) => {
+      const dateA = new Date(`${a.date}T${a.time}`);
+      const dateB = new Date(`${b.date}T${b.time}`);
+      return dateA - dateB;
+    });
+  };
+
+  // Load SCAD office requests from localStorage
+  useEffect(() => {
+    const loadScadRequests = () => {
+      const studentRequests = JSON.parse(localStorage.getItem('studentVideoCallRequests') || '[]');
+      // Filter requests for this specific student
+      const studentId = "58-3661"; // Updated student ID
+      const filteredRequests = studentRequests.filter(request => request.studentId === studentId);
+      
+      // Check for newly accepted requests only on first load
+      if (!hasCheckedNotifications) {
+        const acceptedRequests = filteredRequests.filter(request => request.status === 'accepted');
+        if (acceptedRequests.length > 0) {
+          // Get the most recent accepted request
+          const latestRequest = acceptedRequests.reduce((latest, current) => 
+            new Date(current.date) > new Date(latest.date) ? current : latest
+          );
+          
+          setNotification({
+            message: `Your video call request for ${latestRequest.date} at ${latestRequest.time} has been accepted!`,
+            type: 'success'
+          });
+        }
+        setHasCheckedNotifications(true);
+      }
+
+      setIncomingScadRequests(filteredRequests);
+    };
+
+    // Load initial requests
+    loadScadRequests();
+
+    // Set up an interval to check for new requests
+    const interval = setInterval(loadScadRequests, 5000);
+
+    return () => clearInterval(interval);
+  }, [hasCheckedNotifications]);
+
+  // Add this section to display SCAD office requests with accept/reject buttons
+  const renderScadRequests = () => {
+    return (
+      <div style={{ marginTop: "2rem" }}>
+        <h3 style={{ color: "#1976d2", marginBottom: "1rem" }}>Incoming SCAD Office Requests</h3>
+        <div style={{ display: "grid", gap: "1rem" }}>
+          {scadVideoCallRequests
+            .filter(request => request.status === "pending")
+            .map(request => (
+              <div
+                key={request.id}
+                style={{
+                  padding: "1rem",
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                  background: "white"
+                }}
+              >
+                <div style={{ marginBottom: "0.5rem" }}>
+                  <strong>Date:</strong> {request.date}
+                </div>
+                <div style={{ marginBottom: "0.5rem" }}>
+                  <strong>Time:</strong> {request.time}
+                </div>
+                <div style={{ marginBottom: "0.5rem" }}>
+                  <strong>Reason:</strong> {request.reason}
+                </div>
+                <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+                  <button
+                    onClick={() => handleScadRequest(request.id, "accepted")}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      background: "#4caf50",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer"
+                    }}
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => handleScadRequest(request.id, "rejected")}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      background: "#f44336",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer"
+                    }}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Update the handleScadRequest function
+  const handleScadRequest = (requestId, decision) => {
+    // Update local state
+    setScadVideoCallRequests(prevRequests =>
+      prevRequests.map(request =>
+        request.id === requestId
+          ? { ...request, status: decision }
+          : request
+      )
+    );
+
+    // Update localStorage
+    const storedRequests = JSON.parse(localStorage.getItem('scadVideoCallRequests') || '[]');
+    const updatedRequests = storedRequests.map(request =>
+      request.id === requestId
+        ? { ...request, status: decision }
+        : request
+    );
+    localStorage.setItem('scadVideoCallRequests', JSON.stringify(updatedRequests));
+
+    // If accepted, add to confirmed appointments
+    if (decision === 'accepted') {
+      const acceptedRequest = scadVideoCallRequests.find(req => req.id === requestId);
+      if (acceptedRequest) {
+        const newAppointment = {
+          id: Date.now(),
+          studentName: "Judy Tarek",
+          studentId: "58-3661",
+          date: acceptedRequest.date,
+          time: acceptedRequest.time,
+          reason: acceptedRequest.reason,
+          status: 'confirmed',
+          type: 'confirmed',
+          timestamp: new Date().toISOString()
+        };
+
+        // Update confirmed appointments in state
+        setConfirmedAppointments(prev => [...prev, newAppointment]);
+
+        // Update confirmed appointments in localStorage
+        const storedAppointments = JSON.parse(localStorage.getItem('confirmedAppointments') || '[]');
+        localStorage.setItem('confirmedAppointments', JSON.stringify([...storedAppointments, newAppointment]));
+
+        // Create notification for SCAD office
+        const scadNotifications = JSON.parse(localStorage.getItem('scadNotifications') || '[]');
+        scadNotifications.push({
+          id: Date.now(),
+          message: `Judy Tarek (58-3661) has accepted your video call request for ${acceptedRequest.date} at ${acceptedRequest.time}`,
+          type: 'success',
+          timestamp: new Date().toISOString()
+        });
+        localStorage.setItem('scadNotifications', JSON.stringify(scadNotifications));
+      }
+    }
+  };
+
+  // Search/filter functions
+  const handleAllInternshipsFilter = () => {
+    return internships.filter((internship) => {
+      return (
+        (allInternshipsSearchTerm === "" ||
+          internship.title.toLowerCase().includes(allInternshipsSearchTerm.toLowerCase()) ||
+          internship.company.toLowerCase().includes(allInternshipsSearchTerm.toLowerCase())) &&
+        (allInternshipsIndustryFilter ? internship.industry === allInternshipsIndustryFilter : true) &&
+        (allInternshipsDurationFilter ? internship.duration === allInternshipsDurationFilter : true) &&
+        (allInternshipsPayFilter ? internship.pay === allInternshipsPayFilter : true)
+      );
+    });
+  };
+
+  const handlePastAndCurrentFilter = () => {
+    return pastAndCurrentInternships.filter((internship) => {
+      return (
+        (pastAndCurrentSearchTerm === "" ||
+          internship.title.toLowerCase().includes(pastAndCurrentSearchTerm.toLowerCase()) ||
+          internship.company.toLowerCase().includes(pastAndCurrentSearchTerm.toLowerCase())) &&
+        (pastAndCurrentStatusFilter
+          ? internship.status.toLowerCase().includes(pastAndCurrentStatusFilter.toLowerCase())
+          : true) &&
+        (pastAndCurrentDateFilter
+          ? internship.monthCompleted.toLowerCase().includes(pastAndCurrentDateFilter.toLowerCase())
+          : true)
+      );
+    });
+  };
+
+  // View details
+  const handleViewDetails = (internshipId) => {
+    const internship = [...internships, ...pastAndCurrentInternships].find(
+      (internship) => internship.id === internshipId
+    );
+    setSelectedInternship(internship);
+  };
+
+  // Apply for internship
+  const handleApply = (internshipId) => {
+    setInternships((prevInternships) =>
+      prevInternships.map((internship) =>
+        internship.id === internshipId
+          ? { ...internship, applied: true, status: "Pending" }
+          : internship
+      )
+    );
+    setAppliedInternships((prevApplied) => [
+      ...prevApplied,
+      internships.find((internship) => internship.id === internshipId),
+    ]);
+    setSelectedInternship(null);
+  };
+
+  // Document upload
+  const handleDocumentUpload = (e) => {
+    const file = e.target.files[0];
+    setDocument(file);
+  };
+
+  const handleSubmitDocuments = () => {
+    if (document) {
+      alert("Documents uploaded successfully!");
+    } else {
+      alert("Please upload a document.");
+    }
+  };
+
+  const handleVideoCallRequest = () => {
+    if (!selectedCallDate || !selectedCallTime || !callReason) {
+      alert("Please fill in all fields");
+      return;
+    }
+
+    const newRequest = {
+      id: Date.now(),
+      studentName: "Judy Tarek",
+      studentId: "58-3661",
+      date: selectedCallDate,
+      time: selectedCallTime,
+      reason: callReason,
+      status: "pending",
+      type: "incoming",
+      timestamp: new Date().toISOString()
+    };
+
+    // Add to local state
+    setVideoCallRequests([...videoCallRequests, newRequest]);
+
+    // Write to localStorage for SCAD office to see
+    const existingRequests = JSON.parse(localStorage.getItem('studentVideoCallRequests') || '[]');
+    localStorage.setItem('studentVideoCallRequests', JSON.stringify([...existingRequests, newRequest]));
+
+    // Create notification for SCAD office
+    const scadNotifications = JSON.parse(localStorage.getItem('scadNotifications') || '[]');
+    scadNotifications.push({
+      id: Date.now(),
+      message: `New video call request from Judy Tarek (58-3661) for ${selectedCallDate} at ${selectedCallTime}`,
+      type: 'success',
+      timestamp: new Date().toISOString()
+    });
+    localStorage.setItem('scadNotifications', JSON.stringify(scadNotifications));
+
+    // Close modal and reset fields
+    setShowVideoCallModal(false);
+    setSelectedCallDate("");
+    setSelectedCallTime("");
+    setCallReason("");
+  };
+
+  // Add this function to render confirmed appointments
+  const renderConfirmedAppointments = () => (
+    <div style={{ marginTop: "2rem" }}>
+      <h3 style={{ color: "#1976d2", marginBottom: "1rem" }}>Confirmed Video Call Appointments</h3>
+      <div style={{
+        background: "white",
+        borderRadius: "8px",
+        border: "1px solid #e0e0e0",
+        overflow: "hidden"
+      }}>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr",
+          padding: "1rem",
+          background: "#f5f5f5",
+          borderBottom: "1px solid #e0e0e0",
+          fontWeight: "bold",
+          color: "#1976d2"
+        }}>
+          <div>Date</div>
+          <div>Time</div>
+          <div>Reason</div>
+          <div>Status</div>
+          <div>Initiated By</div>
+          <div>Student Name</div>
+          <div>SCAD Office Status</div>
+          <div>Actions</div>
+        </div>
+        {getSortedAppointments().map((appointment, index) => (
+          <div key={appointment.id} style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr",
+            padding: "1rem",
+            borderBottom: "1px solid #e0e0e0",
+            alignItems: "center",
+            background: index % 2 === 0 ? "white" : "#f8f9fa"
+          }}>
+            <div style={{ color: "#333" }}>{appointment.date}</div>
+            <div style={{ color: "#333" }}>{appointment.time}</div>
+            <div style={{ color: "#333" }}>{appointment.reason}</div>
+            <div style={{ color: "#333" }}>{appointment.status}</div>
+            <div style={{ color: "#333" }}>{appointment.type}</div>
+            <div style={{ color: "#333" }}>{appointment.studentName}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{
+                display: "inline-block",
+                width: 10,
+                height: 10,
+                borderRadius: "50%",
+                background: appointment.scadOnlineStatus ? "#43a047" : "#bdbdbd",
+                marginRight: 6
+              }} />
+              <span style={{ color: "#333", fontWeight: 500 }}>
+                {appointment.scadOnlineStatus ? "Online" : "Offline"}
+              </span>
+            </div>
+            <div>
+              <button
+                style={{
+                  padding: "0.5rem 1rem",
+                  background: "#1976d2",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer"
+                }}
+                onClick={() => {
+                  setCurrentCallAppointment(appointment);
+                  setShowVideoCallSimModal(true);
+                  setVideoEnabled(true);
+                }}
+              >
+                Join Call
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Video Call Simulation Modal */}
+      {showVideoCallSimModal && currentCallAppointment && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          background: "rgba(0,0,0,0.3)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 2000
+        }}>
+          <div style={{
+            background: "#fff",
+            borderRadius: 12,
+            padding: 32,
+            minWidth: 350,
+            maxWidth: 420,
+            boxShadow: "0 8px 32px #1976d299",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center"
+          }}>
+            <h3 style={{ color: "#1976d2", marginBottom: 16 }}>Video Call with SCAD Office</h3>
+            <div style={{
+              width: 180,
+              height: 120,
+              background: videoEnabled ? "#e3f2fd" : "#bdbdbd",
+              borderRadius: 8,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 16,
+              color: videoEnabled ? "#1976d2" : "#757575",
+              fontSize: 22,
+              fontWeight: 600,
+              border: screenSharing ? "3px solid #1976d2" : undefined
+            }}>
+              {videoEnabled ? "[ Video On ]" : "[ Video Off ]"}
+            </div>
+            {screenSharing && (
+              <div style={{
+                background: "#e3f2fd",
+                color: "#1976d2",
+                padding: "0.5rem 1rem",
+                borderRadius: 6,
+                marginBottom: 8,
+                fontWeight: 500,
+                border: "1.5px solid #1976d2"
+              }}>
+                🖥️ Screen is being shared
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+              <button
+                style={{
+                  padding: "0.5rem 1.2rem",
+                  background: videoEnabled ? "#f44336" : "#43a047",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer"
+                }}
+                onClick={() => setVideoEnabled(v => !v)}
+              >
+                {videoEnabled ? "Disable Video" : "Enable Video"}
+              </button>
+              <button
+                style={{
+                  padding: "0.5rem 1.2rem",
+                  background: micMuted ? "#43a047" : "#f44336",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer"
+                }}
+                onClick={() => setMicMuted(m => !m)}
+              >
+                {micMuted ? "Unmute Microphone" : "Mute Microphone"}
+              </button>
+              <button
+                style={{
+                  padding: "0.5rem 1.2rem",
+                  background: screenSharing ? "#1976d2" : "#757575",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer"
+                }}
+                onClick={() => setScreenSharing(s => !s)}
+              >
+                {screenSharing ? "Stop Sharing" : "Share Screen"}
+              </button>
+            </div>
+            <div style={{ marginBottom: 16, fontSize: 18, color: micMuted ? "#f44336" : "#43a047" }}>
+              {micMuted ? "🔇 Microphone Muted" : "🎤 Microphone On"}
+            </div>
+            <button
+              style={{
+                padding: "0.5rem 1.2rem",
+                background: "#9e9e9e",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer"
+              }}
+              onClick={() => {
+                setShowVideoCallSimModal(false);
+                setVideoEnabled(true);
+                setMicMuted(false);
+                setScreenSharing(false);
+                setCurrentCallAppointment(null);
+              }}
+            >
+              Leave Call
+            </button>
+            {otherPartyLeft && (
+              <div style={{
+                background: '#ffebee',
+                color: '#c62828',
+                padding: '0.75rem 1rem',
+                borderRadius: 6,
+                marginBottom: 12,
+                fontWeight: 500,
+                border: '1.5px solid #c62828',
+                textAlign: 'center'
+              }}>
+                The SCAD Office has left the call.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // Add this function to render profile views
+  const renderProfileViews = () => {
+    return (
+      <section style={{ background: "#e3f2fd", borderRadius: 12, padding: 24, marginBottom: 24 }}>
+        <h3 style={{ color: "#1976d2" }}>Companies Who Viewed Your Profile</h3>
+        <div style={{ 
+          background: "white",
+          borderRadius: "8px",
+          border: "1px solid #e0e0e0",
+          overflow: "hidden"
+        }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "2fr 1fr 1fr",
+            padding: "1rem",
+            background: "#f5f5f5",
+            borderBottom: "1px solid #e0e0e0",
+            fontWeight: "bold",
+            color: "#1976d2"
+          }}>
+            <div>Company Name</div>
+            <div>Viewed At</div>
+            <div>Status</div>
+          </div>
+          {profileViews.map((view, index) => (
+            <div key={view.id} style={{
+              display: "grid",
+              gridTemplateColumns: "2fr 1fr 1fr",
+              padding: "1rem",
+              borderBottom: "1px solid #e0e0e0",
+              alignItems: "center",
+              background: index % 2 === 0 ? "white" : "#f8f9fa"
+            }}>
+              <div style={{ color: "#333", fontWeight: "500" }}>{view.companyName}</div>
+              <div style={{ color: "#666" }}>
+                {new Date(view.viewedAt).toLocaleDateString()} {new Date(view.viewedAt).toLocaleTimeString()}
+              </div>
+              <div>
+                <span style={{
+                  padding: "0.25rem 0.5rem",
+                  borderRadius: "4px",
+                  fontSize: "0.8rem",
+                  fontWeight: "bold",
+                  background: "#e3f2fd",
+                  color: "#1976d2"
+                }}>
+                  Viewed
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  // Add these functions to handle assessment
+  const startAssessment = (assessmentId) => {
+    setSelectedAssessment(assessmentId);
+    setCurrentQuestion(0);
+    setAnswers({});
+    setTimeLeft(assessmentId === 1 ? 60 : 90); // Set time in minutes
+    setIsAssessmentActive(true);
+  };
+
+  const handleAnswer = (questionId, answer) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: answer
+    }));
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestion < assessmentQuestions[selectedAssessment].length - 1) {
+      setCurrentQuestion(prev => prev + 1);
+    }
+  };
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(prev => prev - 1);
+    }
+  };
+
+  const calculateScore = () => {
+    const questions = assessmentQuestions[selectedAssessment];
+    let correct = 0;
+    questions.forEach(q => {
+      if (answers[q.id] === q.correctAnswer) correct++;
+    });
+    return Math.round((correct / questions.length) * 100);
+  };
+
+  const submitAssessment = () => {
+    const score = calculateScore();
+    const completedAssessment = {
+      ...onlineAssessments.find(a => a.id === selectedAssessment),
+      status: "completed",
+      score: `${score}%`,
+      completedAt: new Date().toISOString()
+    };
+
+    setOnlineAssessments(prev => 
+      prev.map(a => a.id === selectedAssessment ? completedAssessment : a)
+    );
+    
+    // Initialize visibility to false for new completed assessment
+    setProfileVisibility(prev => ({
+      ...prev,
+      [selectedAssessment]: false
+    }));
+    
+    setIsAssessmentActive(false);
+    setSelectedAssessment(null);
+    setCurrentQuestion(0);
+    setAnswers({});
+    setTimeLeft(null);
+  };
+
+  // Add this useEffect for the timer
+  useEffect(() => {
+    let timer;
+    if (isAssessmentActive && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 60000); // Update every minute
+    } else if (timeLeft === 0) {
+      submitAssessment();
+    }
+    return () => clearInterval(timer);
+  }, [isAssessmentActive, timeLeft]);
+
+  // Add this function to render the assessment modal
+  const renderAssessmentModal = () => {
+    if (!selectedAssessment || !isAssessmentActive) return null;
+
+    const questions = assessmentQuestions[selectedAssessment];
+    const currentQ = questions[currentQuestion];
+
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000
+      }}>
+        <div style={{
+          background: 'white',
+          padding: '2rem',
+          borderRadius: '8px',
+          width: '80%',
+          maxWidth: '800px',
+          maxHeight: '90vh',
+          overflow: 'auto'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1rem'
+          }}>
+            <h3 style={{ color: '#1976d2', margin: 0 }}>
+              {onlineAssessments.find(a => a.id === selectedAssessment)?.title}
+            </h3>
+            <div style={{ color: timeLeft < 5 ? '#f44336' : '#1976d2' }}>
+              Time Left: {timeLeft} minutes
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '2rem' }}>
+            <h4 style={{ color: '#333', marginBottom: '1rem' }}>
+              Question {currentQuestion + 1} of {questions.length}
+            </h4>
+            <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>{currentQ.question}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {currentQ.options.map((option, index) => (
+                <label key={index} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '0.5rem',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  background: answers[currentQ.id] === option ? '#e3f2fd' : 'white'
+                }}>
+                  <input
+                    type="radio"
+                    name={`question-${currentQ.id}`}
+                    value={option}
+                    checked={answers[currentQ.id] === option}
+                    onChange={() => handleAnswer(currentQ.id, option)}
+                    style={{ marginRight: '0.5rem' }}
+                  />
+                  {option}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginTop: '2rem'
+          }}>
+            <button
+              onClick={handlePreviousQuestion}
+              disabled={currentQuestion === 0}
+              style={{
+                padding: '0.5rem 1rem',
+                background: currentQuestion === 0 ? '#e0e0e0' : '#1976d2',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: currentQuestion === 0 ? 'not-allowed' : 'pointer'
+              }}
+            >
+              Previous
+            </button>
+            {currentQuestion === questions.length - 1 ? (
+              <button
+                onClick={submitAssessment}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: '#4caf50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Submit Assessment
+              </button>
+            ) : (
+              <button
+                onClick={handleNextQuestion}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: '#1976d2',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Next
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Add this function to handle visibility toggle
+  const toggleScoreVisibility = (assessmentId) => {
+    setProfileVisibility(prev => ({
+      ...prev,
+      [assessmentId]: !prev[assessmentId]
+    }));
+  };
+
+  // Update the renderOnlineAssessments function
+  const renderOnlineAssessments = () => {
+    return (
+      <section style={{ background: "#e3f2fd", borderRadius: 12, padding: 24, marginBottom: 24 }}>
+        <h3 style={{ color: "#1976d2" }}>Online Assessments</h3>
+        <div style={{ 
+          background: "white",
+          borderRadius: "8px",
+          border: "1px solid #e0e0e0",
+          overflow: "hidden"
+        }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr",
+            padding: "1rem",
+            background: "#f5f5f5",
+            borderBottom: "1px solid #e0e0e0",
+            fontWeight: "bold",
+            color: "#1976d2"
+          }}>
+            <div>Assessment</div>
+            <div>Company</div>
+            <div>Duration</div>
+            <div>Status</div>
+            <div>Action</div>
+            <div>Share Score</div>
+          </div>
+          {onlineAssessments.map((assessment, index) => (
+            <div key={assessment.id} style={{
+              display: "grid",
+              gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr",
+              padding: "1rem",
+              borderBottom: "1px solid #e0e0e0",
+              alignItems: "center",
+              background: index % 2 === 0 ? "white" : "#f8f9fa"
+            }}>
+              <div>
+                <div style={{ color: "#333", fontWeight: "500" }}>{assessment.title}</div>
+                <div style={{ color: "#666", fontSize: "0.9rem", marginTop: "4px" }}>
+                  Topics: {assessment.topics.join(", ")}
+                </div>
+              </div>
+              <div style={{ color: "#333" }}>{assessment.company}</div>
+              <div style={{ color: "#666" }}>{assessment.duration}</div>
+              <div>
+                <span style={{
+                  padding: "0.25rem 0.5rem",
+                  borderRadius: "4px",
+                  fontSize: "0.8rem",
+                  fontWeight: "bold",
+                  background: assessment.status === "completed" ? "#e8f5e9" : "#e3f2fd",
+                  color: assessment.status === "completed" ? "#2e7d32" : "#1976d2"
+                }}>
+                  {assessment.status === "completed" ? `Completed (${assessment.score})` : "Available"}
+                </span>
+              </div>
+              <div>
+                {assessment.status === "available" ? (
+                  <button
+                    onClick={() => startAssessment(assessment.id)}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      background: "#1976d2",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "0.9rem"
+                    }}
+                  >
+                    Start Assessment
+                  </button>
+                ) : (
+                  <span style={{ color: "#666" }}>
+                    Completed on {new Date(assessment.completedAt).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+              <div>
+                {assessment.status === "completed" && (
+                  <button
+                    onClick={() => toggleScoreVisibility(assessment.id)}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      background: profileVisibility[assessment.id] ? "#f44336" : "#4caf50",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "0.9rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      transition: "all 0.3s ease"
+                    }}
+                  >
+                    {profileVisibility[assessment.id] ? (
+                      <>
+                        <span>📢</span> Unpost Score
+                      </>
+                    ) : (
+                      <>
+                        <span>📢</span> Post Score
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  // Add this function to handle workshop registration
+  const handleWorkshopRegistration = (workshopId) => {
+    const workshop = workshops.find(w => w.id === workshopId);
+    if (!workshop) return;
+
+    // Check if workshop is full
+    if (workshop.currentParticipants >= workshop.maxParticipants) {
+      setNotification({
+        message: "Sorry, this workshop is already full!",
+        type: "error"
+      });
+      return;
+    }
+
+    // Check if already registered
+    if (registeredWorkshops.some(w => w.id === workshopId)) {
+      setNotification({
+        message: "You are already registered for this workshop!",
+        type: "warning"
+      });
+      return;
+    }
+
+    // Register for workshop
+    setRegisteredWorkshops(prev => [...prev, workshop]);
+    
+    // Update workshop participants count
+    setWorkshops(prev => prev.map(w => 
+      w.id === workshopId 
+        ? { ...w, currentParticipants: w.currentParticipants + 1 }
+        : w
+    ));
+
+    // Create notification for upcoming workshop
+    setNotification({
+      message: `Successfully registered for ${workshop.title} on ${workshop.date} at ${workshop.time}!`,
+      type: "success"
+    });
+
+    // Close modal if open
+    setShowWorkshopModal(false);
+    setSelectedWorkshop(null);
+  };
+
+  // Add this function to render workshop details
+  const renderWorkshopDetails = () => {
+    if (!selectedWorkshop) return null;
+
+    return (
+      <div style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(0, 0, 0, 0.5)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 1000
+      }}>
+        <div style={{
+          background: "white",
+          padding: "2rem",
+          borderRadius: "8px",
+          width: "600px",
+          maxWidth: "90%",
+          maxHeight: "90vh",
+          overflow: "auto"
+        }}>
+          <h3 style={{ color: "#1976d2", marginBottom: "1rem" }}>{selectedWorkshop.title}</h3>
+          
+          <div style={{ marginBottom: "1rem" }}>
+            <strong>Date:</strong> {selectedWorkshop.date}
+          </div>
+          <div style={{ marginBottom: "1rem" }}>
+            <strong>Time:</strong> {selectedWorkshop.time}
+          </div>
+          <div style={{ marginBottom: "1rem" }}>
+            <strong>Duration:</strong> {selectedWorkshop.duration}
+          </div>
+          <div style={{ marginBottom: "1rem" }}>
+            <strong>Speaker:</strong> {selectedWorkshop.speaker}
+          </div>
+          <div style={{ marginBottom: "1rem" }}>
+            <strong>Description:</strong>
+            <p style={{ marginTop: "0.5rem" }}>{selectedWorkshop.description}</p>
+          </div>
+          <div style={{ marginBottom: "1rem" }}>
+            <strong>Topics:</strong>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
+              {selectedWorkshop.topics.map((topic, index) => (
+                <span key={index} style={{
+                  padding: "0.25rem 0.5rem",
+                  background: "#e3f2fd",
+                  color: "#1976d2",
+                  borderRadius: "4px",
+                  fontSize: "0.9rem"
+                }}>
+                  {topic}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div style={{ marginBottom: "1.5rem" }}>
+            <strong>Availability:</strong> {selectedWorkshop.maxParticipants - selectedWorkshop.currentParticipants} spots remaining
+          </div>
+
+          <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end" }}>
+            <button
+              onClick={() => {
+                setShowWorkshopModal(false);
+                setSelectedWorkshop(null);
+              }}
+              style={{
+                padding: "0.75rem 1.5rem",
+                background: "#f5f5f5",
+                color: "#333",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer"
+              }}
+            >
+              Close
+            </button>
+            <button
+              onClick={() => handleWorkshopRegistration(selectedWorkshop.id)}
+              disabled={registeredWorkshops.some(w => w.id === selectedWorkshop.id)}
+              style={{
+                padding: "0.75rem 1.5rem",
+                background: registeredWorkshops.some(w => w.id === selectedWorkshop.id) ? "#e0e0e0" : "#1976d2",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: registeredWorkshops.some(w => w.id === selectedWorkshop.id) ? "not-allowed" : "pointer"
+              }}
+            >
+              {registeredWorkshops.some(w => w.id === selectedWorkshop.id) ? "Already Registered" : "Register Now"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Add this function to render the workshops section
+  const renderWorkshops = () => {
+    return (
+      <section style={{ background: "#e3f2fd", borderRadius: 12, padding: 24, marginBottom: 24 }}>
+        <h3 style={{ color: "#1976d2" }}>Upcoming Career Workshops</h3>
+        <div style={{ 
+          background: "white",
+          borderRadius: "8px",
+          border: "1px solid #e0e0e0",
+          overflow: "hidden"
+        }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
+            padding: "1rem",
+            background: "#f5f5f5",
+            borderBottom: "1px solid #e0e0e0",
+            fontWeight: "bold",
+            color: "#1976d2"
+          }}>
+            <div>Workshop</div>
+            <div>Date</div>
+            <div>Time</div>
+            <div>Availability</div>
+            <div>Action</div>
+          </div>
+          {workshops.filter(w => w.status === 'upcoming').map((workshop, index) => (
+            <div key={workshop.id} style={{
+              display: "grid",
+              gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
+              padding: "1rem",
+              borderBottom: "1px solid #e0e0e0",
+              alignItems: "center",
+              background: index % 2 === 0 ? "white" : "#f8f9fa"
+            }}>
+              <div>
+                <div style={{ color: "#333", fontWeight: "500" }}>{workshop.title}</div>
+                <div style={{ color: "#666", fontSize: "0.9rem", marginTop: "4px" }}>
+                  Speaker: {workshop.speaker}
+                </div>
+              </div>
+              <div style={{ color: "#333" }}>{workshop.date}</div>
+              <div style={{ color: "#333" }}>{workshop.time}</div>
+              <div>
+                <span style={{
+                  padding: "0.25rem 0.5rem",
+                  borderRadius: "4px",
+                  fontSize: "0.8rem",
+                  fontWeight: "bold",
+                  background: workshop.currentParticipants >= workshop.maxParticipants ? "#ffebee" : "#e8f5e9",
+                  color: workshop.currentParticipants >= workshop.maxParticipants ? "#c62828" : "#2e7d32"
+                }}>
+                  {workshop.maxParticipants - workshop.currentParticipants} spots left
+                </span>
+              </div>
+              <div>
+                <button
+                  onClick={() => {
+                    setSelectedWorkshop(workshop);
+                    setShowWorkshopModal(true);
+                  }}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    background: "#1976d2",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "0.9rem"
+                  }}
+                >
+                  View Details
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  // Add this function to render registered workshops
+  const renderRegisteredWorkshops = () => {
+    if (registeredWorkshops.length === 0) return null;
+
+    return (
+      <section style={{ background: "#e3f2fd", borderRadius: 12, padding: 24, marginBottom: 24 }}>
+        <h3 style={{ color: "#1976d2" }}>My Registered Workshops</h3>
+        <div style={{ 
+          background: "white",
+          borderRadius: "8px",
+          border: "1px solid #e0e0e0",
+          overflow: "hidden"
+        }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "2fr 1fr 1fr 1fr",
+            padding: "1rem",
+            background: "#f5f5f5",
+            borderBottom: "1px solid #e0e0e0",
+            fontWeight: "bold",
+            color: "#1976d2"
+          }}>
+            <div>Workshop</div>
+            <div>Date</div>
+            <div>Time</div>
+            <div>Status</div>
+          </div>
+          {registeredWorkshops.map((workshop, index) => (
+            <div key={workshop.id} style={{
+              display: "grid",
+              gridTemplateColumns: "2fr 1fr 1fr 1fr",
+              padding: "1rem",
+              borderBottom: "1px solid #e0e0e0",
+              alignItems: "center",
+              background: index % 2 === 0 ? "white" : "#f8f9fa"
+            }}>
+              <div>
+                <div style={{ color: "#333", fontWeight: "500" }}>{workshop.title}</div>
+                <div style={{ color: "#666", fontSize: "0.9rem", marginTop: "4px" }}>
+                  Speaker: {workshop.speaker}
+                </div>
+              </div>
+              <div style={{ color: "#333" }}>{workshop.date}</div>
+              <div style={{ color: "#333" }}>{workshop.time}</div>
+              <div>
+                <span style={{
+                  padding: "0.25rem 0.5rem",
+                  borderRadius: "4px",
+                  fontSize: "0.8rem",
+                  fontWeight: "bold",
+                  background: "#e8f5e9",
+                  color: "#2e7d32"
+                }}>
+                  Registered
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  // Add this after the existing state declarations
+  const [liveWorkshops, setLiveWorkshops] = useState([
+    {
+      id: 1,
+      title: "Live: Advanced Interview Techniques",
+      speaker: "Dr. Emily Rodriguez",
+      currentParticipants: 12,
+      maxParticipants: 20,
+      startTime: "2024-03-20T14:00:00",
+      duration: "90 minutes",
+      status: "live",
+      topics: ["Advanced Interview Questions", "Salary Negotiation", "Behavioral Interviews"],
+      meetingLink: "https://meet.google.com/abc-defg-hij"
+    },
+    {
+      id: 2,
+      title: "Live: Tech Industry Trends 2024",
+      speaker: "Michael Chen",
+      currentParticipants: 8,
+      maxParticipants: 15,
+      startTime: "2024-03-21T15:30:00",
+      duration: "60 minutes",
+      status: "upcoming",
+      topics: ["AI in Tech", "Remote Work", "Future Skills"],
+      meetingLink: "https://meet.google.com/xyz-uvw-123"
+    }
+  ]);
+
+  const [joinedLiveWorkshop, setJoinedLiveWorkshop] = useState(null);
+
+  // Add these state variables after the existing ones
+  const [showLiveWorkshop, setShowLiveWorkshop] = useState(false);
+  const [workshopNotes, setWorkshopNotes] = useState("");
+  const [currentWorkshop, setCurrentWorkshop] = useState(null);
+
+  // Add this function to handle joining a live workshop
+  const handleJoinLiveWorkshop = (workshopId) => {
+    const workshop = liveWorkshops.find(w => w.id === workshopId);
+    if (!workshop) return;
+
+    if (workshop.currentParticipants >= workshop.maxParticipants) {
+      setNotification({
+        message: "Sorry, this workshop is already full!",
+        type: "error"
+      });
+      return;
+    }
+
+    setJoinedLiveWorkshop(workshop);
+    setCurrentWorkshop(workshop);
+    setShowLiveWorkshop(true);
+    setNotification({
+      message: `Successfully joined ${workshop.title}!`,
+      type: "success"
+    });
+
+    // Update participants count
+    setLiveWorkshops(prev => prev.map(w => 
+      w.id === workshopId 
+        ? { ...w, currentParticipants: w.currentParticipants + 1 }
+        : w
+    ));
+  };
+
+  // Add these state variables after the existing ones
+  const [chatMessages, setChatMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [showChat, setShowChat] = useState(true);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+
+  // Add these state variables after the existing ones
+  const [toastNotifications, setToastNotifications] = useState([]);
+
+  // Add this function to handle toast notifications
+  const addToastNotification = (message, sender) => {
+    const id = Date.now();
+    setToastNotifications(prev => [...prev, { id, message, sender }]);
+    
+    // Remove the toast after 3 seconds
+    setTimeout(() => {
+      setToastNotifications(prev => prev.filter(toast => toast.id !== id));
+    }, 3000);
+  };
+
+  // Add this component for toast notifications
+  const ToastNotifications = () => {
+    return (
+      <div style={{
+        position: "fixed",
+        top: "1rem",
+        right: "1rem",
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.5rem",
+        zIndex: 3000
+      }}>
+        {toastNotifications.map(toast => (
+          <div
+            key={toast.id}
+            style={{
+              background: "white",
+              padding: "1rem",
+              borderRadius: "8px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              animation: "slideIn 0.3s ease-out",
+              maxWidth: "300px"
+            }}
+          >
+            <div style={{
+              width: "40px",
+              height: "40px",
+              background: "#e3f2fd",
+              borderRadius: "50%",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              fontSize: "1.2rem"
+            }}>
+              👤
+            </div>
+            <div>
+              <div style={{ fontWeight: "bold", color: "#1976d2" }}>
+                {toast.sender}
+              </div>
+              <div style={{ color: "#666", fontSize: "0.9rem" }}>
+                {toast.message}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Add this function to simulate live video
+  const renderLiveVideo = () => {
+    return (
+      <div style={{
+        flex: 1,
+        background: "#000",
+        borderRadius: "8px",
+        position: "relative",
+        overflow: "hidden"
+      }}>
+        {/* Main Speaker Video */}
+        <div style={{
+          width: "100%",
+          height: "100%",
+          background: "linear-gradient(45deg, #1a237e, #0d47a1)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          color: "white",
+          fontSize: "1.2rem"
+        }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>🎥</div>
+            <div>Live Workshop in Progress</div>
+            <div style={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>
+              {currentWorkshop?.speaker} is presenting
+            </div>
+          </div>
+        </div>
+
+        {/* Participant Videos */}
+        <div style={{
+          position: "absolute",
+          bottom: "1rem",
+          right: "1rem",
+          display: "flex",
+          gap: "0.5rem"
+        }}>
+          {[1, 2, 3].map((_, index) => (
+            <div
+              key={index}
+              style={{
+                width: "120px",
+                height: "80px",
+                background: "rgba(255, 255, 255, 0.1)",
+                borderRadius: "4px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                color: "white",
+                fontSize: "0.8rem"
+              }}
+            >
+              Participant {index + 1}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Add this function to handle sending messages
+  const handleSendMessage = () => {
+    if (!newMessage.trim()) return;
+
+    const message = {
+      id: Date.now(),
+      sender: "You",
+      content: newMessage,
+      timestamp: new Date().toLocaleTimeString(),
+      isOwn: true
+    };
+
+    setChatMessages(prev => [...prev, message]);
+    setNewMessage("");
+
+    // Simulate response after 2 seconds
+    setTimeout(() => {
+      const responses = [
+        "Great point!",
+        "I agree with that.",
+        "Could you elaborate more on that?",
+        "That's an interesting perspective.",
+        "Thanks for sharing!"
+      ];
+      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+      const randomParticipant = `Participant ${Math.floor(Math.random() * 3) + 1}`;
+      
+      const responseMessage = {
+        id: Date.now() + 1,
+        sender: randomParticipant,
+        content: randomResponse,
+        timestamp: new Date().toLocaleTimeString(),
+        isOwn: false
+      };
+
+      setChatMessages(prev => [...prev, responseMessage]);
+      setUnreadMessages(prev => prev + 1);
+      
+      // Show toast notification for new message
+      addToastNotification(randomResponse, randomParticipant);
+    }, 2000);
+  };
+
+  // Add these state variables after the existing ones
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [recordedWorkshops, setRecordedWorkshops] = useState([]);
+
+  // Add this function to handle recording
+  const handleRecording = () => {
+    if (!isRecording) {
+      // Start recording
+      setIsRecording(true);
+      setRecordingTime(0);
+      setNotification({
+        message: "Recording started. The workshop will be saved for later viewing.",
+        type: "success"
+      });
+    } else {
+      // Stop recording
+      setIsRecording(false);
+      const recordedWorkshop = {
+        id: Date.now(),
+        title: currentWorkshop.title,
+        speaker: currentWorkshop.speaker,
+        duration: `${Math.floor(recordingTime / 60)}:${(recordingTime % 60).toString().padStart(2, '0')}`,
+        recordedAt: new Date().toISOString(),
+        topics: currentWorkshop.topics
+      };
+      setRecordedWorkshops(prev => [...prev, recordedWorkshop]);
+      setNotification({
+        message: "Recording saved successfully! You can find it in your recorded workshops.",
+        type: "success"
+      });
+    }
+  };
+
+  // Add this useEffect for recording timer
+  useEffect(() => {
+    let timer;
+    if (isRecording) {
+      timer = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isRecording]);
+
+  // Update the renderLiveWorkshopWindow function to include recording controls
+  const renderLiveWorkshopWindow = () => {
+    if (!showLiveWorkshop || !currentWorkshop) return null;
+
+    return (
+      <div style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(0, 0, 0, 0.8)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 2000
+      }}>
+        <div style={{
+          background: "white",
+          width: "90%",
+          height: "90%",
+          borderRadius: "12px",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden"
+        }}>
+          {/* Header */}
+          <div style={{
+            padding: "1rem",
+            background: "#1976d2",
+            color: "white",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center"
+          }}>
+            <div>
+              <h3 style={{ margin: 0 }}>{currentWorkshop.title}</h3>
+              <div style={{ fontSize: "0.9rem" }}>
+                Speaker: {currentWorkshop.speaker} | Duration: {currentWorkshop.duration}
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+              {/* Recording Controls */}
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <button
+                  onClick={handleRecording}
+                  style={{
+                    background: isRecording ? "#f44336" : "#4caf50",
+                    border: "none",
+                    color: "white",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem"
+                  }}
+                >
+                  {isRecording ? (
+                    <>
+                      <span>⏺️</span> Stop Recording
+                    </>
+                  ) : (
+                    <>
+                      <span>⏺️</span> Start Recording
+                    </>
+                  )}
+                </button>
+                {isRecording && (
+                  <div style={{
+                    background: "rgba(0, 0, 0, 0.2)",
+                    padding: "0.25rem 0.5rem",
+                    borderRadius: "4px",
+                    fontSize: "0.9rem"
+                  }}>
+                    {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setShowChat(!showChat)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "white",
+                  fontSize: "1.2rem",
+                  cursor: "pointer",
+                  position: "relative"
+                }}
+              >
+                💬
+                {unreadMessages > 0 && (
+                  <span style={{
+                    position: "absolute",
+                    top: "-5px",
+                    right: "-5px",
+                    background: "#f44336",
+                    color: "white",
+                    borderRadius: "50%",
+                    width: "20px",
+                    height: "20px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    fontSize: "0.8rem"
+                  }}>
+                    {unreadMessages}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setShowFeedbackModal(true)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "white",
+                  fontSize: "1.5rem",
+                  cursor: "pointer"
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div style={{
+            display: "flex",
+            flex: 1,
+            overflow: "hidden"
+          }}>
+            {/* Video Section */}
+            <div style={{
+              flex: showChat ? "2" : "1",
+              padding: "1rem",
+              borderRight: showChat ? "1px solid #e0e0e0" : "none",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem"
+            }}>
+              {renderLiveVideo()}
+              <div style={{
+                padding: "1rem",
+                background: "#f5f5f5",
+                borderRadius: "8px"
+              }}>
+                <h4 style={{ margin: "0 0 0.5rem 0" }}>Workshop Topics</h4>
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  {currentWorkshop.topics.map((topic, index) => (
+                    <span
+                      key={index}
+                      style={{
+                        padding: "0.25rem 0.5rem",
+                        background: "#e3f2fd",
+                        color: "#1976d2",
+                        borderRadius: "4px",
+                        fontSize: "0.9rem"
+                      }}
+                    >
+                      {topic}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Chat Section */}
+            {showChat && (
+              <div style={{
+                flex: "1",
+                display: "flex",
+                flexDirection: "column",
+                borderLeft: "1px solid #e0e0e0"
+              }}>
+                <div style={{
+                  padding: "1rem",
+                  background: "#f5f5f5",
+                  borderBottom: "1px solid #e0e0e0"
+                }}>
+                  <h4 style={{ margin: 0 }}>Workshop Chat</h4>
+                </div>
+                <div style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  padding: "1rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.5rem"
+                }}>
+                  {chatMessages.map((message) => (
+                    <div
+                      key={message.id}
+                      style={{
+                        alignSelf: message.isOwn ? "flex-end" : "flex-start",
+                        maxWidth: "80%"
+                      }}
+                    >
+                      <div style={{
+                        background: message.isOwn ? "#1976d2" : "#f5f5f5",
+                        color: message.isOwn ? "white" : "#333",
+                        padding: "0.5rem 1rem",
+                        borderRadius: "12px",
+                        fontSize: "0.9rem"
+                      }}>
+                        {!message.isOwn && (
+                          <div style={{ fontWeight: "bold", marginBottom: "0.25rem" }}>
+                            {message.sender}
+                          </div>
+                        )}
+                        {message.content}
+                        <div style={{
+                          fontSize: "0.7rem",
+                          opacity: 0.7,
+                          marginTop: "0.25rem",
+                          textAlign: message.isOwn ? "right" : "left"
+                        }}>
+                          {message.timestamp}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{
+                  padding: "1rem",
+                  borderTop: "1px solid #e0e0e0",
+                  display: "flex",
+                  gap: "0.5rem"
+                }}>
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                    placeholder="Type a message..."
+                    style={{
+                      flex: 1,
+                      padding: "0.5rem",
+                      border: "1px solid #e0e0e0",
+                      borderRadius: "4px",
+                      fontSize: "0.9rem"
+                    }}
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      background: "#1976d2",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer"
+                    }}
+                  >
+                    Send
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Notes Section */}
+            <div style={{
+              flex: "1",
+              padding: "1rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
+              borderLeft: "1px solid #e0e0e0"
+            }}>
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}>
+                <h4 style={{ margin: 0 }}>My Notes</h4>
+                <button
+                  onClick={() => {
+                    const notesToSave = {
+                      workshopId: currentWorkshop.id,
+                      title: currentWorkshop.title,
+                      notes: workshopNotes,
+                      timestamp: new Date().toISOString()
+                    };
+                    console.log("Saving notes:", notesToSave);
+                    setNotification({
+                      message: "Notes saved successfully!",
+                      type: "success"
+                    });
+                  }}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    background: "#4caf50",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer"
+                  }}
+                >
+                  Save Notes
+                </button>
+              </div>
+              <textarea
+                value={workshopNotes}
+                onChange={(e) => setWorkshopNotes(e.target.value)}
+                placeholder="Take notes here..."
+                style={{
+                  flex: 1,
+                  padding: "1rem",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "8px",
+                  resize: "none",
+                  fontSize: "1rem",
+                  lineHeight: "1.5"
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Update the renderLiveWorkshops function to use the new join handler
+  const renderLiveWorkshops = () => {
+    return (
+      <section style={{ background: "#e3f2fd", borderRadius: 12, padding: 24, marginBottom: 24 }}>
+        <h3 style={{ color: "#1976d2" }}>Live Online Workshops</h3>
+        <div style={{ 
+          background: "white",
+          borderRadius: "8px",
+          border: "1px solid #e0e0e0",
+          overflow: "hidden"
+        }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr",
+            padding: "1rem",
+            background: "#f5f5f5",
+            borderBottom: "1px solid #e0e0e0",
+            fontWeight: "bold",
+            color: "#1976d2"
+          }}>
+            <div>Workshop</div>
+            <div>Speaker</div>
+            <div>Time</div>
+            <div>Duration</div>
+            <div>Participants</div>
+            <div>Action</div>
+          </div>
+          {liveWorkshops.map((workshop, index) => (
+            <div key={workshop.id} style={{
+              display: "grid",
+              gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr",
+              padding: "1rem",
+              borderBottom: "1px solid #e0e0e0",
+              alignItems: "center",
+              background: index % 2 === 0 ? "white" : "#f8f9fa"
+            }}>
+              <div>
+                <div style={{ color: "#333", fontWeight: "500" }}>{workshop.title}</div>
+                <div style={{ color: "#666", fontSize: "0.9rem", marginTop: "4px" }}>
+                  Topics: {workshop.topics.join(", ")}
+                </div>
+              </div>
+              <div style={{ color: "#333" }}>{workshop.speaker}</div>
+              <div style={{ color: "#333" }}>
+                {new Date(workshop.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </div>
+              <div style={{ color: "#333" }}>{workshop.duration}</div>
+              <div>
+                <span style={{
+                  padding: "0.25rem 0.5rem",
+                  borderRadius: "4px",
+                  fontSize: "0.8rem",
+                  fontWeight: "bold",
+                  background: workshop.currentParticipants >= workshop.maxParticipants ? "#ffebee" : "#e8f5e9",
+                  color: workshop.currentParticipants >= workshop.maxParticipants ? "#c62828" : "#2e7d32"
+                }}>
+                  {workshop.currentParticipants}/{workshop.maxParticipants}
+                </span>
+              </div>
+              <div>
+                {joinedLiveWorkshop?.id === workshop.id ? (
+                  <button
+                    onClick={() => {
+                      setCurrentWorkshop(workshop);
+                      setShowLiveWorkshop(true);
+                    }}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      background: "#4caf50",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "0.9rem"
+                    }}
+                  >
+                    Join Now
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleJoinLiveWorkshop(workshop.id)}
+                    disabled={workshop.currentParticipants >= workshop.maxParticipants}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      background: workshop.currentParticipants >= workshop.maxParticipants ? "#e0e0e0" : "#1976d2",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: workshop.currentParticipants >= workshop.maxParticipants ? "not-allowed" : "pointer",
+                      fontSize: "0.9rem"
+                    }}
+                  >
+                    {workshop.currentParticipants >= workshop.maxParticipants ? "Full" : "Join Workshop"}
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  // Add these state variables after the existing ones
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [workshopRating, setWorkshopRating] = useState(0);
+  const [workshopFeedback, setWorkshopFeedback] = useState("");
+  const [hoveredRating, setHoveredRating] = useState(0);
+
+  // Add this function to handle workshop feedback submission
+  const handleFeedbackSubmit = () => {
+    if (workshopRating === 0) {
+      setNotification({
+        message: "Please select a rating before submitting feedback",
+        type: "error"
+      });
+      return;
+    }
+
+    const feedback = {
+      workshopId: currentWorkshop.id,
+      workshopTitle: currentWorkshop.title,
+      rating: workshopRating,
+      feedback: workshopFeedback,
+      timestamp: new Date().toISOString()
+    };
+
+    // Here you would typically save the feedback to a database
+    console.log("Saving workshop feedback:", feedback);
+
+    setNotification({
+      message: "Thank you for your feedback!",
+      type: "success"
+    });
+
+    // Generate certificate
+    generateCertificate(currentWorkshop);
+
+    // Reset states and close modals
+    setWorkshopRating(0);
+    setWorkshopFeedback("");
+    setShowFeedbackModal(false);
+    setShowLiveWorkshop(false);
+    setCurrentWorkshop(null);
+    setChatMessages([]);
+    setUnreadMessages(0);
+  };
+
+  // Add this component for the feedback modal
+  const renderFeedbackModal = () => {
+    if (!showFeedbackModal || !currentWorkshop) return null;
+
+    return (
+      <div style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(0, 0, 0, 0.5)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 3000
+      }}>
+        <div style={{
+          background: "white",
+          padding: "2rem",
+          borderRadius: "12px",
+          width: "500px",
+          maxWidth: "90%"
+        }}>
+          <h3 style={{ color: "#1976d2", marginBottom: "1.5rem" }}>
+            Rate Your Workshop Experience
+          </h3>
+          
+          <div style={{ marginBottom: "1.5rem" }}>
+            <div style={{ marginBottom: "0.5rem", fontWeight: "500" }}>
+              Workshop: {currentWorkshop.title}
+            </div>
+            <div style={{ marginBottom: "1rem", color: "#666" }}>
+              Speaker: {currentWorkshop.speaker}
+            </div>
+            
+            {/* Star Rating */}
+            <div style={{ marginBottom: "1.5rem" }}>
+              <div style={{ marginBottom: "0.5rem", fontWeight: "500" }}>
+                How would you rate this workshop?
+              </div>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setWorkshopRating(star)}
+                    onMouseEnter={() => setHoveredRating(star)}
+                    onMouseLeave={() => setHoveredRating(0)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      fontSize: "2rem",
+                      cursor: "pointer",
+                      padding: "0.25rem",
+                      color: star <= (hoveredRating || workshopRating) ? "#FFD700" : "#e0e0e0",
+                      transition: "transform 0.2s",
+                      transform: star === hoveredRating ? "scale(1.2)" : "scale(1)"
+                    }}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+              <div style={{ 
+                marginTop: "0.5rem", 
+                color: "#666",
+                fontSize: "0.9rem"
+              }}>
+                {workshopRating === 0 ? "Select a rating" :
+                 workshopRating === 1 ? "Poor" :
+                 workshopRating === 2 ? "Fair" :
+                 workshopRating === 3 ? "Good" :
+                 workshopRating === 4 ? "Very Good" : "Excellent"}
+              </div>
+            </div>
+
+            {/* Feedback Text */}
+            <div style={{ marginBottom: "1.5rem" }}>
+              <div style={{ marginBottom: "0.5rem", fontWeight: "500" }}>
+                Share your feedback (optional)
+              </div>
+              <textarea
+                value={workshopFeedback}
+                onChange={(e) => setWorkshopFeedback(e.target.value)}
+                placeholder="What did you like about the workshop? What could be improved?"
+                style={{
+                  width: "100%",
+                  minHeight: "120px",
+                  padding: "0.75rem",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "8px",
+                  resize: "vertical",
+                  fontSize: "0.9rem"
+                }}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => {
+                  setShowFeedbackModal(false);
+                  setWorkshopRating(0);
+                  setWorkshopFeedback("");
+                }}
+                style={{
+                  padding: "0.75rem 1.5rem",
+                  background: "#f5f5f5",
+                  color: "#333",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer"
+                }}
+              >
+                Skip
+              </button>
+              <button
+                onClick={handleFeedbackSubmit}
+                style={{
+                  padding: "0.75rem 1.5rem",
+                  background: "#1976d2",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer"
+                }}
+              >
+                Submit Feedback
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Add this after the existing state declarations
+  const [preRecordedWorkshops] = useState([
+    {
+      id: 1,
+      title: "Pre-recorded: Algorithms & Data Structures Crash Course",
+      description: "A comprehensive introduction to essential algorithms and data structures for coding interviews and real-world problem solving.",
+      youtubeId: "8hly31xKli0" // freeCodeCamp.org - Algorithms and Data Structures
+    },
+    {
+      id: 2,
+      title: "Pre-recorded: System Design Basics",
+      description: "Learn the fundamentals of system design, including scalability, reliability, and common interview questions.",
+      youtubeId: "UzLMhqg3_Wc" // Gaurav Sen - System Design Basics
+    },
+    {
+      id: 3,
+      title: "Pre-recorded: Object-Oriented Programming in JavaScript",
+      description: "Understand OOP principles and how to apply them in JavaScript for cleaner, more maintainable code.",
+      youtubeId: "PFmuCDHHpwk" // Academind - OOP in JS
+    }
+  ]);
+
+  // Replace the video player in renderPreRecordedWorkshops with an iframe for YouTube
+  const renderPreRecordedWorkshops = () => {
+    return (
+      <section style={{ background: "#e3f2fd", borderRadius: 12, padding: 24, marginBottom: 24 }}>
+        <h3 style={{ color: "#1976d2" }}>Pre-recorded Workshops</h3>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
+          gap: "2rem"
+        }}>
+          {preRecordedWorkshops.map((workshop) => (
+            <div key={workshop.id} style={{
+              background: "white",
+              borderRadius: "8px",
+              border: "1px solid #e0e0e0",
+              padding: "1.5rem",
+              boxShadow: "0 2px 8px #bbdefb33",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center"
+            }}>
+              <h4 style={{ color: "#1976d2", marginBottom: 8 }}>{workshop.title}</h4>
+              <p style={{ color: "#333", marginBottom: 16, textAlign: "center" }}>{workshop.description}</p>
+              <div style={{ width: 320, height: 180, marginBottom: 12, borderRadius: 8, overflow: 'hidden', background: '#000' }}>
+                <iframe
+                  width="320"
+                  height="180"
+                  src={`https://www.youtube.com/embed/${workshop.youtubeId}`}
+                  title={workshop.title}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{ display: 'block', width: '100%', height: '100%' }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  // Add this function to render recorded workshops
+  const renderRecordedWorkshops = () => {
+    if (recordedWorkshops.length === 0) return null;
+
+    return (
+      <section style={{ background: "#e3f2fd", borderRadius: 12, padding: 24, marginBottom: 24 }}>
+        <h3 style={{ color: "#1976d2" }}>My Recorded Workshops</h3>
+        <div style={{ 
+          background: "white",
+          borderRadius: "8px",
+          border: "1px solid #e0e0e0",
+          overflow: "hidden"
+        }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
+            padding: "1rem",
+            background: "#f5f5f5",
+            borderBottom: "1px solid #e0e0e0",
+            fontWeight: "bold",
+            color: "#1976d2"
+          }}>
+            <div>Workshop</div>
+            <div>Speaker</div>
+            <div>Duration</div>
+            <div>Recorded On</div>
+            <div>Action</div>
+          </div>
+          {recordedWorkshops.map((workshop, index) => (
+            <div key={workshop.id} style={{
+              display: "grid",
+              gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
+              padding: "1rem",
+              borderBottom: "1px solid #e0e0e0",
+              alignItems: "center",
+              background: index % 2 === 0 ? "white" : "#f8f9fa"
+            }}>
+              <div>
+                <div style={{ color: "#333", fontWeight: "500" }}>{workshop.title}</div>
+                <div style={{ color: "#666", fontSize: "0.9rem", marginTop: "4px" }}>
+                  Topics: {workshop.topics.join(", ")}
+                </div>
+              </div>
+              <div style={{ color: "#333" }}>{workshop.speaker}</div>
+              <div style={{ color: "#333" }}>{workshop.duration}</div>
+              <div style={{ color: "#333" }}>
+                {new Date(workshop.recordedAt).toLocaleDateString()}
+              </div>
+              <div>
+                <button
+                  onClick={() => {
+                    setCurrentWorkshop(workshop);
+                    setShowLiveWorkshop(true);
+                  }}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    background: "#1976d2",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "0.9rem"
+                  }}
+                >
+                  Watch Recording
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  // Add these state variables after the existing ones
+  const [showCertificate, setShowCertificate] = useState(false);
+  const [certificateData, setCertificateData] = useState(null);
+
+  // Add this function to generate certificate
+  const generateCertificate = (workshop) => {
+    const certificate = {
+      id: `CERT-${Date.now()}`,
+      studentName: "Judy Tarek",
+      studentId: "58-3661",
+      workshopTitle: workshop.title,
+      speaker: workshop.speaker,
+      date: new Date().toLocaleDateString(),
+      duration: workshop.duration,
+      topics: workshop.topics,
+      certificateNumber: `CERT-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+    };
+    setCertificateData(certificate);
+    setShowCertificate(true);
+  };
+
+  // Add this function to render the certificate
+  const renderCertificate = () => {
+    if (!showCertificate || !certificateData) return null;
+
+    return (
+      <div style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(0, 0, 0, 0.8)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 3000
+      }}>
+        <div style={{
+          background: "white",
+          width: "800px",
+          maxWidth: "90%",
+          padding: "2rem",
+          borderRadius: "12px",
+          position: "relative"
+        }}>
+          {/* Certificate Design */}
+          <div style={{
+            border: "2px solid #1976d2",
+            padding: "2rem",
+            borderRadius: "8px",
+            background: "linear-gradient(45deg, #ffffff, #f5f5f5)",
+            position: "relative",
+            overflow: "hidden"
+          }}>
+            {/* Decorative Elements */}
+            <div style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "4px",
+              background: "linear-gradient(90deg, #1976d2, #64b5f6)"
+            }} />
+            <div style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: "4px",
+              background: "linear-gradient(90deg, #1976d2, #64b5f6)"
+            }} />
+            
+            {/* Certificate Header */}
+            <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+              <h2 style={{ 
+                color: "#1976d2", 
+                fontSize: "2rem", 
+                margin: 0,
+                fontFamily: "serif"
+              }}>
+                Certificate of Attendance
+              </h2>
+              <div style={{ 
+                color: "#666", 
+                fontSize: "1.2rem",
+                marginTop: "0.5rem"
+              }}>
+                This is to certify that
+              </div>
+            </div>
+
+            {/* Student Information */}
+            <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+              <div style={{ 
+                fontSize: "1.8rem", 
+                fontWeight: "bold",
+                color: "#333",
+                marginBottom: "0.5rem"
+              }}>
+                {certificateData.studentName}
+              </div>
+              <div style={{ color: "#666" }}>
+                Student ID: {certificateData.studentId}
+              </div>
+            </div>
+
+            {/* Workshop Details */}
+            <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+              <div style={{ color: "#666", marginBottom: "1rem" }}>
+                has successfully completed the workshop
+              </div>
+              <div style={{ 
+                fontSize: "1.4rem", 
+                color: "#1976d2",
+                fontWeight: "bold",
+                marginBottom: "1rem"
+              }}>
+                {certificateData.workshopTitle}
+              </div>
+              <div style={{ color: "#666" }}>
+                Conducted by {certificateData.speaker}
+              </div>
+              <div style={{ color: "#666", marginTop: "0.5rem" }}>
+                Duration: {certificateData.duration}
+              </div>
+            </div>
+
+            {/* Topics Covered */}
+            <div style={{ marginBottom: "2rem" }}>
+              <div style={{ 
+                color: "#1976d2", 
+                fontWeight: "bold",
+                marginBottom: "0.5rem"
+              }}>
+                Topics Covered:
+              </div>
+              <div style={{ 
+                display: "flex", 
+                flexWrap: "wrap", 
+                gap: "0.5rem",
+                justifyContent: "center"
+              }}>
+                {certificateData.topics.map((topic, index) => (
+                  <span key={index} style={{
+                    padding: "0.25rem 0.75rem",
+                    background: "#e3f2fd",
+                    color: "#1976d2",
+                    borderRadius: "20px",
+                    fontSize: "0.9rem"
+                  }}>
+                    {topic}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Certificate Footer */}
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-end",
+              marginTop: "2rem",
+              paddingTop: "2rem",
+              borderTop: "1px solid #e0e0e0"
+            }}>
+              <div>
+                <div style={{ color: "#666", marginBottom: "0.5rem" }}>
+                  Date: {certificateData.date}
+                </div>
+                <div style={{ color: "#666" }}>
+                  Certificate No: {certificateData.certificateNumber}
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ 
+                  color: "#1976d2", 
+                  fontWeight: "bold",
+                  marginBottom: "0.5rem"
+                }}>
+                  SCAD Office
+                </div>
+                <div style={{ color: "#666" }}>
+                  Career Development Center
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "1rem",
+            marginTop: "1rem"
+          }}>
+            <button
+              onClick={() => {
+                // Here you would typically implement PDF download
+                setNotification({
+                  message: "Certificate download started!",
+                  type: "success"
+                });
+              }}
+              style={{
+                padding: "0.75rem 1.5rem",
+                background: "#1976d2",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem"
+              }}
+            >
+              <span>📥</span> Download PDF
+            </button>
+            <button
+              onClick={() => setShowCertificate(false)}
+              style={{
+                padding: "0.75rem 1.5rem",
+                background: "#f5f5f5",
+                color: "#333",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer"
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Add state for video call simulation modal and controls
+  const [showVideoCallSimModal, setShowVideoCallSimModal] = useState(false);
+  const [currentCallAppointment, setCurrentCallAppointment] = useState(null);
+  const [videoEnabled, setVideoEnabled] = useState(true);
+  const [micMuted, setMicMuted] = useState(false);
+  const [screenSharing, setScreenSharing] = useState(false);
+  const [otherPartyLeft, setOtherPartyLeft] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (showVideoCallSimModal && currentCallAppointment) {
+      setOtherPartyLeft(false);
+      timer = setTimeout(() => {
+        setOtherPartyLeft(true);
+        setTimeout(() => {
+          setShowVideoCallSimModal(false);
+          setVideoEnabled(true);
+          setMicMuted(false);
+          setScreenSharing(false);
+          setCurrentCallAppointment(null);
+          setOtherPartyLeft(false);
+        }, 2000);
+      }, 20000);
+    }
+    return () => clearTimeout(timer);
+  }, [showVideoCallSimModal, currentCallAppointment]);
+
+  // Helper function to simulate SCAD Office online status
+  const getScadOnlineStatus = () => {
+    // For demo, randomly return true (online) or false (offline)
+    return Math.random() > 0.5;
+  };
+
+  // --- Layout/Style objects (copied from SCAD/Faculty) ---
+  const styles = {
+    container: {
+      display: 'flex',
+      minHeight: '100vh',
+      background: '#f3f4f6',
+      fontFamily: "'Segoe UI', 'Roboto', 'Arial', sans-serif",
+    },
+    sidebar: {
+      width: '260px',
+      background: '#fff',
+      borderRight: '2px solid #e0e0e0',
+      padding: '1.5rem 1rem 1.5rem 1.5rem',
+      position: 'fixed',
+      height: '100vh',
+      overflowY: 'auto',
+      boxShadow: '2px 0 8px #e0e0e033',
+      zIndex: 100,
+    },
+    mainContent: {
+      flex: 1,
+      marginLeft: '260px',
+      padding: '2.5rem 2.5rem 2.5rem 2.5rem',
+      background: '#f3f4f6',
+      minHeight: '100vh',
+    },
+    navItem: {
+      display: 'flex',
+      alignItems: 'center',
+      padding: '0.75rem 1.2rem',
+      marginBottom: '0.5rem',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      color: '#1976d2',
+      fontWeight: 500,
+      fontSize: 17,
+      transition: 'background 0.2s, color 0.2s',
+    },
+    activeNavItem: {
+      background: '#e3f2fd',
+      color: '#1976d2',
+      fontWeight: 700,
+      boxShadow: '0 2px 8px #1976d211',
+    },
+    card: {
+      background: '#fff',
+      borderRadius: '12px',
+      padding: '1.5rem',
+      marginBottom: '1.5rem',
+      boxShadow: '0 2px 8px #e0e0e055',
+      border: '1.5px solid #e0e0e0',
+    },
+    header: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '2rem',
+      fontFamily: "'Segoe UI', 'Roboto', 'Arial', sans-serif",
+    },
+    searchBar: {
+      display: 'flex',
+      alignItems: 'center',
+      background: '#f3f4f6',
+      borderRadius: '8px',
+      padding: '0.5rem 1rem',
+      width: '100%',
+      boxShadow: '0 1px 2px #e0e0e022',
+      border: '1.5px solid #e0e0e0',
+    },
+    button: {
+      background: '#1976d2',
+      color: 'white',
+      padding: '0.5rem 1.2rem',
+      borderRadius: '8px',
+      border: 'none',
+      cursor: 'pointer',
+      fontWeight: 600,
+      fontSize: 16,
+      transition: 'background 0.2s',
+      boxShadow: '0 2px 8px #1976d211',
+    },
+    buttonHover: {
+      background: '#125ea2',
+    },
+  };
+
+  // --- Sidebar navigation items for Pro Student ---
+  const navItems = [
+    { id: 'overview', label: 'Overview', icon: <FaChartBar /> },
+    { id: 'video_calls', label: 'Video Calls', icon: <FaVideo /> },
+    { id: 'assessments', label: 'Assessments', icon: <FaFileAlt /> },
+    { id: 'workshops', label: 'Workshops', icon: <FaCalendarAlt /> },
+    { id: 'profile_views', label: 'Profile Views', icon: <FaUsers /> },
+    { id: 'internships', label: 'Internships', icon: <FaBuilding /> },
+  ];
+  const [activeSection, setActiveSection] = useState('overview');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // --- Logout button ---
+  // ... existing code ...
+
+  return (
+    <div style={styles.container}>
+      {/* Logout Button */}
+      <div style={{
+        position: 'fixed',
+        top: 20,
+        right: 32,
+        zIndex: 4000
+      }}>
+        <button
+          onClick={() => {
+            localStorage.clear();
+            window.location.href = '/';
+          }}
+          style={{
+            background: '#1976d2',
+            color: 'white',
+            border: 'none',
+            borderRadius: 20,
+            padding: '0.6rem 1.6rem',
+            fontWeight: 700,
+            fontSize: 18,
+            boxShadow: '0 2px 8px #0001',
+            cursor: 'pointer',
+            letterSpacing: 1,
+            transition: 'background 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+          onMouseOver={e => e.currentTarget.style.background = '#125ea2'}
+          onMouseOut={e => e.currentTarget.style.background = '#1976d2'}
+        >
+          <FaSignOutAlt style={{ marginRight: 8 }} /> Logout
+        </button>
+      </div>
+      {/* Sidebar Navigation */}
+      <div style={styles.sidebar}>
+        <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
+          <h2 style={{ color: '#1976d2', fontSize: '1.5rem', marginBottom: '1rem', fontWeight: 900, letterSpacing: 1 }}>Pro Student</h2>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+            <div style={{ ...styles.searchBar, width: '100%' }}>
+              <FaSearch style={{ color: '#9CA3AF', marginRight: '0.5rem' }} />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ border: 'none', outline: 'none', width: '100%', background: 'transparent' }}
+              />
+            </div>
+          </div>
+        </div>
+        <nav>
+          {navItems.filter(item =>
+            item.label.toLowerCase().includes(searchQuery.toLowerCase())
+          ).map((item) => (
+            <div
+              key={item.id}
+              style={{
+                ...styles.navItem,
+                ...(activeSection === item.id ? styles.activeNavItem : {}),
+              }}
+              onClick={() => setActiveSection(item.id)}
+              onMouseOver={e => e.currentTarget.style.background = '#e3f2fd'}
+              onMouseOut={e => e.currentTarget.style.background = activeSection === item.id ? '#e3f2fd' : '#fff'}
+            >
+              {item.icon}
+              <span style={{ marginLeft: '0.75rem' }}>{item.label}</span>
+            </div>
+          ))}
+        </nav>
+      </div>
+      {/* Main Content */}
+      <div style={styles.mainContent}>
+        {/* Overview Section */}
+        {activeSection === 'overview' && (
+          <div>
+            {/* You can add summary cards here if desired */}
+            <h2 style={{ color: '#1976d2', fontWeight: 900, marginBottom: 24 }}>Welcome, Pro Student</h2>
+            {/* Optionally, add stats or a welcome message */}
+          </div>
+        )}
+        {/* Video Calls Section */}
+        {activeSection === 'video_calls' && (
+          <div>
+            <h2 style={{ color: '#1976d2', fontWeight: 900, marginBottom: 24 }}>Video Call Requests</h2>
+            {/* Request New Call Button */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+              <button
+                style={{ ...styles.button, display: 'flex', alignItems: 'center', gap: 8 }}
+                onClick={() => setShowVideoCallModal(true)}
+                onMouseOver={e => e.currentTarget.style.background = '#125ea2'}
+                onMouseOut={e => e.currentTarget.style.background = '#1976d2'}
+              >
+                <FaVideo /> Request New Call
+              </button>
+            </div>
+            {/* Video Call Requests Table */}
+            <div style={{ background: 'white', borderRadius: 8, border: '1px solid #e0e0e0', overflow: 'hidden', marginBottom: 32 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 4fr 1fr', padding: '1rem', background: '#f5f5f5', borderBottom: '1px solid #e0e0e0', fontWeight: 'bold', color: '#1976d2' }}>
+                <div>Date</div>
+                <div>Time</div>
+                <div>Reason</div>
+                <div>Status</div>
+              </div>
+              {videoCallRequests.map((req, idx) => (
+                <div key={req.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 4fr 1fr', padding: '1rem', borderBottom: '1px solid #e0e0e0', background: idx % 2 === 0 ? 'white' : '#f8f9fa', alignItems: 'center' }}>
+                  <div>{req.date}</div>
+                  <div>{req.time}</div>
+                  <div>{req.reason}</div>
+                  <div>
+                    <span style={{ background: '#ffe0b2', color: '#f57c00', padding: '0.25rem 0.75rem', borderRadius: 4, fontWeight: 600, fontSize: 13 }}>Pending</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Confirmed Video Call Appointments Table */}
+            <h2 style={{ color: '#1976d2', fontWeight: 900, marginBottom: 16 }}>Confirmed Video Call Appointments</h2>
+            <div style={{ background: 'white', borderRadius: 8, border: '1px solid #e0e0e0', overflow: 'hidden' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr 1fr 1fr 1fr 2fr 1fr', padding: '1rem', background: '#f5f5f5', borderBottom: '1px solid #e0e0e0', fontWeight: 'bold', color: '#1976d2' }}>
+                <div>Date</div>
+                <div>Time</div>
+                <div>Reason</div>
+                <div>Status</div>
+                <div>Initiated By</div>
+                <div>Student Name</div>
+                <div>SCAD Office Status</div>
+                <div>Actions</div>
+              </div>
+              {getSortedAppointments().map((appointment, index) => (
+                <div key={appointment.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr 1fr 1fr 1fr 2fr 1fr', padding: '1rem', borderBottom: '1px solid #e0e0e0', alignItems: 'center', background: index % 2 === 0 ? 'white' : '#f8f9fa' }}>
+                  <div style={{ color: '#333' }}>{appointment.date}</div>
+                  <div style={{ color: '#333' }}>{appointment.time}</div>
+                  <div style={{ color: '#333' }}>{appointment.reason}</div>
+                  <div style={{ color: '#333' }}>{appointment.status}</div>
+                  <div style={{ color: '#333' }}>{appointment.type}</div>
+                  <div style={{ color: '#333' }}>{appointment.studentName}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: appointment.scadOnlineStatus ? '#43a047' : '#bdbdbd', marginRight: 6 }} />
+                    <span style={{ color: '#333', fontWeight: 500 }}>{appointment.scadOnlineStatus ? 'Online' : 'Offline'}</span>
+                  </div>
+                  <div>
+                    <button
+                      style={{ padding: '0.5rem 1rem', background: '#1976d2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                      onClick={() => {
+                        setCurrentCallAppointment(appointment);
+                        setShowVideoCallSimModal(true);
+                        setVideoEnabled(true);
+                      }}
+                    >
+                      Join Call
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Video Call Simulation Modal */}
+            {showVideoCallSimModal && currentCallAppointment && (
+              // ...existing modal code...
+              renderConfirmedAppointments() // This will render the modal as before
+            )}
+            {/* Request New Call Modal */}
+            {showVideoCallModal && (
+              <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
+                <div style={{ background: '#fff', borderRadius: 12, padding: 32, minWidth: 350, maxWidth: 420, boxShadow: '0 8px 32px #1976d299', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <h3 style={{ color: '#1976d2', marginBottom: 16 }}>Request New Video Call</h3>
+                  <input type="date" value={selectedCallDate} onChange={e => setSelectedCallDate(e.target.value)} style={{ marginBottom: 12, padding: 8, borderRadius: 4, border: '1px solid #e0e0e0', width: '100%' }} />
+                  <input type="time" value={selectedCallTime} onChange={e => setSelectedCallTime(e.target.value)} style={{ marginBottom: 12, padding: 8, borderRadius: 4, border: '1px solid #e0e0e0', width: '100%' }} />
+                  <textarea value={callReason} onChange={e => setCallReason(e.target.value)} placeholder="Reason for call" style={{ marginBottom: 16, padding: 8, borderRadius: 4, border: '1px solid #e0e0e0', width: '100%', minHeight: 60 }} />
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <button style={{ ...styles.button, background: '#1976d2' }} onClick={handleVideoCallRequest}>Submit</button>
+                    <button style={{ ...styles.button, background: '#9e9e9e' }} onClick={() => setShowVideoCallModal(false)}>Cancel</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        {/* Assessments Section */}
+        {activeSection === 'assessments' && (
+          <div>
+            {/* Place all assessment related content here, styled as cards/tables */}
+            {/* ...existing assessment UI and logic... */}
+          </div>
+        )}
+        {/* Workshops Section */}
+        {activeSection === 'workshops' && (
+          <div>
+            {/* Place all workshop related content here, styled as cards/tables */}
+            {/* ...existing workshops UI and logic... */}
+          </div>
+        )}
+        {/* Profile Views Section */}
+        {activeSection === 'profile_views' && (
+          <div>
+            {/* Place all profile views related content here, styled as cards/tables */}
+            {/* ...existing profile views UI and logic... */}
+          </div>
+        )}
+        {/* Internships Section */}
+        {activeSection === 'internships' && (
+          <div>
+            {/* Place all internships related content here, styled as cards/tables */}
+            {/* ...existing internships UI and logic... */}
+          </div>
+        )}
+        {/* Render all modals and notifications as before, outside the main content */}
+        {/* ...existing modals, notifications, etc... */}
+      </div>
+    </div>
+  );
+}
