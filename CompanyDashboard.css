@@ -1,0 +1,191 @@
+.dashboard-title {
+  text-align: center;
+  margin: 2em 0;
+  color: #333;
+  font-size: 2em;
+}
+
+/* Tab Navigation */
+.tab-navigation {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 2em;
+  padding: 1em;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.tab-navigation button {
+  padding: 0.8em 1.5em;
+  border: none;
+  background-color: transparent;
+  color: #666;
+  cursor: pointer;
+  font-size: 1em;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+}
+
+.tab-navigation button:hover {
+  background-color: #e9ecef;
+  color: #333;
+}
+
+/* Internship Cards */
+.internship-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5em;
+  padding: 1em;
+}
+
+.internship-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5em;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+}
+
+.internship-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Application Cards */
+.application-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5em;
+  margin-bottom: 1em;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Message Cards */
+.message-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5em;
+  margin-bottom: 1em;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+.message-card.accepted {
+  border-left: 4px solid #28a745;
+}
+
+.message-card.rejected {
+  border-left: 4px solid #dc3545;
+}
+
+.message-card.application {
+  border-left: 4px solid #007bff;
+}
+
+/* Forms */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2em;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+input, select, textarea {
+  padding: 0.8em;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Buttons */
+button {
+  padding: 0.8em 1.5em;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.2s ease;
+}
+
+button.primary {
+  background-color: #007bff;
+  color: white;
+}
+
+button.success {
+  background-color: #28a745;
+  color: white;
+}
+
+button.danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  gap: 1em;
+  margin-bottom: 1.5em;
+  padding: 1em;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+/* Status Badges */
+.status {
+  display: inline-block;
+  padding: 0.3em 0.8em;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.status.accepted {
+  background-color: #e6ffe6;
+  color: #006600;
+}
+
+.status.rejected {
+  background-color: #ffe6e6;
+  color: #cc0000;
+}
+
+.status.application {
+  background-color: #e6f3ff;
+  color: #0066cc;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .internship-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .filters {
+    flex-direction: column;
+  }
+  
+  .tab-navigation {
+    flex-wrap: wrap;
+  }
+  
+  .tab-navigation button {
+    width: 100%;
+    margin-bottom: 0.5em;
+  }
+} 
